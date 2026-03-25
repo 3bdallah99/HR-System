@@ -8,9 +8,11 @@ namespace Domain.Entities
 {
 	public class Position
 	{
-		public int Id { get; set; }
-		public string Title { get; set; }
-		public Depatment Depatment { get; set; }
-		public ICollection<Emolyee> Employees { get; set; }
-	}
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public decimal BaseSalary { get; set; }
+        public int DepartmentId { get; set; }
+        public Department Department { get; set; }
+        public ICollection<Employee> Employees { get; set; }
+    }
 }

@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-	public class Depatment
+	public class Department
 	{
 		public int ID { get; set; }
 		public string Name { get; set; }
 		public ICollection<Position> Positions { get; set; } 
 
-		public ICollection<Emolyee> Emolyees { get; set; }
+		public ICollection<Employee> Emolyees { get; set; }
 	}
 }

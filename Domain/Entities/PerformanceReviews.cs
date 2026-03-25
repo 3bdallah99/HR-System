@@ -12,6 +12,6 @@ namespace Domain.Entities
 		public DateTime ReviewDate { get; set; }
 		public double PerformanceRating { get; set; }
 		public int EmployeeId { get; set; }
-		public Emolyee Emolyee { get; set; }
+		public Employee Emolyee { get; set; }
 	}
 }
