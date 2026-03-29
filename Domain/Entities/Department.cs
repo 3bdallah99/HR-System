@@ -8,10 +8,10 @@ namespace Domain.Entities
 {
 	public class Department
 	{
-		public int ID { get; set; }
+		public int Id { get; set; }
 		public string Name { get; set; }
 		public ICollection<Position> Positions { get; set; } 
 
-		public ICollection<Employee> Emolyees { get; set; }
+		public ICollection<Employee> Employees { get; set; }
 	}
 }

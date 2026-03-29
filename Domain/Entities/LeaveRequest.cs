@@ -12,7 +12,7 @@ namespace Domain.Entities
         public int Id { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public int TotalDays { get; set; }
+        public int TotalDays => (EndDate - StartDate).Days + 1;
         public LeaveType LeaveType { get; set; }
         public LeaveStatus Status { get; set; } = LeaveStatus.Pending;
         public string? Reason { get; set; }

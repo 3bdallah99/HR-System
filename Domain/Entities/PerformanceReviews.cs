@@ -8,10 +8,15 @@ namespace Domain.Entities
 {
 	public class PerformanceReviews
 	{
-		public int Id { get; set; }
-		public DateTime ReviewDate { get; set; }
-		public double PerformanceRating { get; set; }
-		public int EmployeeId { get; set; }
-		public Employee Emolyee { get; set; }
-	}
+        public int Id { get; set; }
+        public DateTime ReviewDate { get; set; }
+        public int Rating { get; set; }
+        public string Feedback { get; set; } 
+        public bool AcknowledgedByEmployee { get; set; } = false;
+        public DateTime? AcknowledgedAt { get; set; }
+        public int EmployeeId { get; set; }
+        public Employee Employee { get; set; }
+        public int ReviewerEmployeeId { get; set; }
+        public Employee Reviewer { get; set; }
+    }
 }
