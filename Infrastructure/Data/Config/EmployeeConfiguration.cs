@@ -20,7 +20,7 @@ namespace Infrastructure.Data.Config
             builder.HasOne(e => e.Manager)
                 .WithMany()
                 .HasForeignKey(e => e.ManagerId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
             // Position relationship
             builder.HasOne(e => e.Position)
                 .WithMany(p => p.Employees)

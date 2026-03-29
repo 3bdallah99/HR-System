@@ -1,4 +1,9 @@
 
+using Infrastructure.Data;
+using Infrastructure.Data.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
 namespace PL.API
 {
     public class Program
@@ -10,6 +15,19 @@ namespace PL.API
             // Add services to the container.
 
             builder.Services.AddControllers();
+            // Configure Entity Framework and SQL Server
+            builder.Services.AddDbContext<HRDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            // Configure Identity
+            builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 8;
+                options.Password.RequireDigit = true;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+            })
+                    .AddEntityFrameworkStores<HRDbContext>()
+                    .AddDefaultTokenProviders();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
