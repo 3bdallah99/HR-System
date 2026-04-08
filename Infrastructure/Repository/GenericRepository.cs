@@ -10,47 +10,47 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Repository
 {
-    public class GenericRepository<TEntity> : IGenericRepository<TEntity>
+    public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
     {
         private readonly HRDbContext _dbContext;
+        private readonly DbSet<TEntity> _dbSet;
 
         public GenericRepository(HRDbContext dbContext)
         {
             _dbContext = dbContext;
+            _dbSet = _dbContext.Set<TEntity>();
         }
-        public Task AddAsync(TEntity entity)
+        public async Task AddAsync(TEntity entity)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<IReadOnlyList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
-        {
-            throw new NotImplementedException();
+            await _dbSet.AddAsync(entity);
         }
 
-        public Task<TEntity?> FirstOrDefultAsync(Expression<Func<TEntity, bool>> predicate)
+        public async Task<IReadOnlyList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            throw new NotImplementedException();
+            return await _dbSet.Where(predicate).AsNoTracking().ToListAsync();
         }
 
-        public Task<IReadOnlyList<TEntity>> GetAllAsync()
+        public async Task<TEntity?> FirstOrDefultAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            throw new NotImplementedException();
+            return await _dbSet.Where(predicate).AsNoTracking().FirstOrDefaultAsync();
         }
 
-        public Task<TEntity> GetByIdAsync(int id)
+        public async Task<IReadOnlyList<TEntity>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _dbSet.AsNoTracking().ToListAsync();
+        }
+
+        public async Task<TEntity> GetByIdAsync(int id)
+        {
+            return await _dbSet.FindAsync(id);
         }
 
         public void Remove(TEntity entity)
         {
-            throw new NotImplementedException();
+             _dbSet.Remove(entity);
         }
 
         public void Update(TEntity entity)
-        {
-            throw new NotImplementedException();
-        }
+        => _dbSet.Update(entity);
     }
 }
