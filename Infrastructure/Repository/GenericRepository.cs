@@ -7,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Infrastructure.Repository
 {
@@ -20,34 +21,35 @@ namespace Infrastructure.Repository
             _dbContext = dbContext;
             _dbSet = _dbContext.Set<TEntity>();
         }
-        public async Task AddAsync(TEntity entity)
+
+        public async Task AddAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
-            await _dbSet.AddAsync(entity);
+            await _dbSet.AddAsync(entity, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
+        public async Task<IReadOnlyList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
-            return await _dbSet.Where(predicate).AsNoTracking().ToListAsync();
+            return await _dbSet.Where(predicate).AsNoTracking().ToListAsync(cancellationToken);
         }
 
-        public async Task<TEntity?> FirstOrDefultAsync(Expression<Func<TEntity, bool>> predicate)
+        public async Task<TEntity?> FirstOrDefultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
-            return await _dbSet.Where(predicate).AsNoTracking().FirstOrDefaultAsync();
+            return await _dbSet.Where(predicate).AsNoTracking().FirstOrDefaultAsync(cancellationToken);
         }
 
-        public async Task<IReadOnlyList<TEntity>> GetAllAsync()
+        public async Task<IReadOnlyList<TEntity>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            return await _dbSet.AsNoTracking().ToListAsync();
+            return await _dbSet.AsNoTracking().ToListAsync(cancellationToken);
         }
 
-        public async Task<TEntity> GetByIdAsync(int id)
+        public async Task<TEntity> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            return await _dbSet.FindAsync(id);
+            return await _dbSet.FindAsync(new object[] { id }, cancellationToken);
         }
 
         public void Remove(TEntity entity)
         {
-             _dbSet.Remove(entity);
+            _dbSet.Remove(entity);
         }
 
         public void Update(TEntity entity)
