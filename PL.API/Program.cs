@@ -1,5 +1,9 @@
+using Appllication.Features.Employee.Queries.GetAllEmployees;
+using Domain.Interfaces;
+using Infrastructure;
 using Infrastructure.Data;
 using Infrastructure.Data.Identity;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +31,9 @@ namespace PL.API
             })
                     .AddEntityFrameworkStores<HRDbContext>()
                     .AddDefaultTokenProviders();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssembly(typeof(GetAllEmployeesQuery).Assembly));
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
