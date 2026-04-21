@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,9 +11,12 @@ namespace Domain.Interfaces
     public interface IGenericRepository<TEntity>
     {
         Task<IReadOnlyList<TEntity>> GetAllAsync(CancellationToken cancellationToken = default);
-        Task<TEntity> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+        Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
-        Task<TEntity?> FirstOrDefultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+        Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+        Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+
+        IQueryable<TEntity> GetQueryable();
 
         Task AddAsync(TEntity entity, CancellationToken cancellationToken = default);
         void Update(TEntity entity);

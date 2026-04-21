@@ -1,4 +1,4 @@
-﻿using Domain.Interfaces;
+using Domain.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -32,7 +32,7 @@ namespace Infrastructure.Repository
             return await _dbSet.Where(predicate).AsNoTracking().ToListAsync(cancellationToken);
         }
 
-        public async Task<TEntity?> FirstOrDefultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+        public async Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
             return await _dbSet.Where(predicate).AsNoTracking().FirstOrDefaultAsync(cancellationToken);
         }
@@ -42,9 +42,16 @@ namespace Infrastructure.Repository
             return await _dbSet.AsNoTracking().ToListAsync(cancellationToken);
         }
 
-        public async Task<TEntity> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             return await _dbSet.FindAsync(new object[] { id }, cancellationToken);
+        }
+
+        public IQueryable<TEntity> GetQueryable() => _dbSet.AsQueryable();
+
+        public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+        {
+            return await _dbSet.AnyAsync(predicate, cancellationToken);
         }
 
         public void Remove(TEntity entity)
