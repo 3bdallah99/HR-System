@@ -32,13 +32,14 @@ import { PayrollService } from '../../core/services/payroll.service';
               <input type="number" class="form-control custom-input" [(ngModel)]="year">
             </div>
             <div class="col-md-2">
-              <button class="btn btn-primary w-100 premium-btn" [disabled]="isRunning()" (click)="runPayroll()">
+              <button class="btn btn-primary w-100 premium-btn d-inline-flex align-items-center justify-content-center text-nowrap" [disabled]="isRunning()" (click)="runPayroll()">
                 <ng-container *ngIf="!isRunning()">
-                  <i class="fas fa-cogs me-2"></i> {{ t().payroll?.runBtn || 'Run' }}
+                  <i class="fas fa-cogs"></i>
+                  <span>{{ t().payroll?.runBtn || 'Run' }}</span>
                 </ng-container>
                 <ng-container *ngIf="isRunning()">
-                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  {{ t().payroll?.running || 'Running...' }}
+                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  <span>{{ t().payroll?.running || 'Running...' }}</span>
                 </ng-container>
               </button>
             </div>
@@ -115,22 +116,23 @@ import { PayrollService } from '../../core/services/payroll.service';
     }
     .premium-btn {
       border-radius: 8px;
-      padding: 0.75rem 1.5rem;
+      padding: 0.6rem 1rem;
       background: linear-gradient(135deg, #4f46e5, #6366f1);
       border: none;
       font-weight: 600;
       transition: all 0.3s ease;
-      height: 46px;
+      min-height: 46px;
       color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      white-space: nowrap;
     }
     .premium-btn:hover:not(:disabled) {
       background: linear-gradient(135deg, #4338ca, #4f46e5);
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-    [dir="rtl"] .me-2 {
-      margin-left: 0.5rem !important;
-      margin-right: 0 !important;
     }
   `]
 })

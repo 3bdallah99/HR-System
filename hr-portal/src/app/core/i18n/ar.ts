@@ -188,7 +188,12 @@ export const ar = {
   payroll: {
     month: 'الشهر',
     year: 'السنة',
+    runTitle: 'إجراء مسير الرواتب',
     runPayroll: 'إجراء الرواتب',
+    runBtn: 'تنفيذ المسير',
+    running: 'جاري التنفيذ...',
+    runSuccess: 'تم تنفيذ مسير الرواتب بنجاح.',
+    runError: 'فشل في تنفيذ مسير الرواتب.',
     processing: 'جاري المعالجة',
     basicSalary: 'الراتب الأساسي',
     deductions: 'الاستقطاعات',

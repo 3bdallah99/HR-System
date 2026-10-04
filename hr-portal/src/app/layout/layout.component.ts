@@ -79,7 +79,7 @@ import { ToastService } from '../core/services/toast.service';
             <div class="profile-dropdown-container">
               <button class="profile-btn" (click)="toggleProfileMenu()">
                 <div class="avatar-small">{{ getUserInitials() }}</div>
-                <i class="fas fa-chevron-down ms-2 text-muted" style="font-size: 12px;"></i>
+                <i class="fas fa-chevron-down text-muted chevron-icon"></i>
               </button>
 
               @if (isProfileMenuOpen()) {

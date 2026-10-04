@@ -188,7 +188,12 @@ export const en = {
   payroll: {
     month: 'Month',
     year: 'Year',
+    runTitle: 'Run Payroll',
     runPayroll: 'Run Payroll',
+    runBtn: 'Run',
+    running: 'Running...',
+    runSuccess: 'Payroll run completed successfully.',
+    runError: 'Failed to run payroll.',
     processing: 'Processing',
     basicSalary: 'Basic Salary',
     deductions: 'Deductions',

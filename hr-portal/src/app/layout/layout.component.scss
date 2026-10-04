@@ -435,16 +435,23 @@
   }
   
   .profile-btn {
-    background: none;
+    background: transparent;
     border: none;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    padding: 0;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 12px;
     cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: var(--hover-bg, rgba(255, 255, 255, 0.08));
+    }
     
     .avatar-small {
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       border-radius: 10px;
       background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
       color: white;
@@ -452,8 +459,15 @@
       align-items: center;
       justify-content: center;
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 0.95rem;
       box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+      transition: transform 0.2s ease;
+    }
+
+    .chevron-icon {
+      font-size: 11px;
+      line-height: 1;
+      display: inline-block;
       transition: transform 0.2s ease;
     }
     
