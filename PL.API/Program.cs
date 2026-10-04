@@ -228,6 +228,9 @@ namespace PL.API
                 app.UseHsts();
             }
 
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
             app.UseCors("AllowAll");
 
             app.UseHttpsRedirection();
@@ -238,6 +241,7 @@ namespace PL.API
             app.MapHealthChecks("/health");
 
             app.MapControllers();
+            app.MapFallbackToFile("index.html");
 
             app.Run();
         }
