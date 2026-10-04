@@ -1,4 +1,4 @@
-﻿using Domain.Enums;
+using Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +23,7 @@ namespace Domain.Entities
         public int EmployeeId { get; set; }
         public Employee Employee { get; set; }
 
-        // The manager who approved or rejected
+        // The HR officer who approved or rejected
         public int? ReviewedByEmployeeId { get; set; }
         public Employee? ReviewedBy { get; set; }
     }

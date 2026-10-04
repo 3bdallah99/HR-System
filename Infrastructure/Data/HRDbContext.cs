@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Infrastructure.Data.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +22,9 @@ namespace Infrastructure.Data
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
         public DbSet<LeaveBalance> LeaveBalances { get; set; }
         public DbSet<Payroll> Payrolls { get; set; }
+        public DbSet<SalaryStructure> SalaryStructures { get; set; }
         public DbSet<PerformanceReviews> PerformanceReviews { get; set; }
+        public DbSet<DeviceAttendanceLog> DeviceAttendanceLogs { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,5 +30,7 @@ namespace Domain.Entities
         public ICollection<LeaveBalance> LeaveBalances { get; set; }
         public ICollection<Payroll> Payrolls { get; set; }
         public ICollection<PerformanceReviews> PerformanceReviews { get; set; }
+        public ICollection<DeviceAttendanceLog> DeviceAttendanceLogs { get; set; } = new List<DeviceAttendanceLog>();
+        public SalaryStructure? SalaryStructure { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -8,7 +8,10 @@ namespace Infrastructure.Data.Config
     {
         public void Configure(EntityTypeBuilder<AttendanceRecord> builder)
         {
+            builder.ToTable("AttendanceRecords");
+
             builder.HasKey(ar => ar.Id);
+
             builder.Property(ar => ar.Date)
            .HasColumnType("date")
                    .IsRequired();

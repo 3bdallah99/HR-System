@@ -1,0 +1,206 @@
+@baseUrl = https://localhost:7129/api
+@contentType = application/json
+
+### ============================================================================
+### 1. AUTHENTICATION & SECURITY
+### ============================================================================
+
+# @name hrLogin
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "hr@example.com",
+  "password": "Welcome@123"
+}
+
+### Store Auth Token from response
+@authToken = {{hrLogin.response.body.data}}
+
+### 1.2 Change Password (Requires Authentication)
+POST {{baseUrl}}/auth/change-password
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "currentPassword": "Welcome@123",
+  "newPassword": "Welcome@123"
+}
+
+### ============================================================================
+### 2. ORGANIZATION DIRECTORY (HR ONLY)
+### ============================================================================
+
+### 2.1 Get Departments
+GET {{baseUrl}}/department?page=1&pageSize=10
+Authorization: Bearer {{authToken}}
+
+### 2.2 Create Department
+# @name createDept
+POST {{baseUrl}}/department
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Quality Assurance & Testing"
+}
+
+@deptId = {{createDept.response.body.data}}
+
+### 2.3 Get Positions
+GET {{baseUrl}}/position?page=1&pageSize=10
+Authorization: Bearer {{authToken}}
+
+### 2.4 Create Position
+# @name createPos
+POST {{baseUrl}}/position
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "title": "Senior QA Automation Engineer",
+  "baseSalary": 7500,
+  "departmentId": {{deptId}}
+}
+
+@posId = {{createPos.response.body.data}}
+
+### 2.5 Get Employees
+GET {{baseUrl}}/employee?page=1&pageSize=10
+Authorization: Bearer {{authToken}}
+
+### 2.6 Create Employee (Auto-generates user account with Welcome@123)
+# @name createEmp
+POST {{baseUrl}}/employee
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Jane QA Tester",
+  "email": "jane.qa@example.com",
+  "phone": "+1-555-0199",
+  "address": "404 Test Suite Ave, Silicon Valley",
+  "hireDate": "2026-01-15T00:00:00Z",
+  "departmentId": {{deptId}},
+  "positionId": {{posId}}
+}
+
+@employeeId = {{createEmp.response.body.data}}
+
+### ============================================================================
+### 3. LEAVE MANAGEMENT HUB
+### ============================================================================
+
+### 3.1 Allocate Leave Quota to Employee
+POST {{baseUrl}}/leave/balances
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "employeeId": {{employeeId}},
+  "year": 2026,
+  "leaveType": 1,
+  "totalDays": 21
+}
+
+### 3.2 Inspect Employee Balances
+GET {{baseUrl}}/leave/balances/{{employeeId}}?year=2026
+Authorization: Bearer {{authToken}}
+
+### 3.3 Submit Leave Request (Employee or Admin)
+# @name submitLeave
+POST {{baseUrl}}/leave/requests
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "employeeId": {{employeeId}},
+  "leaveType": 1,
+  "startDate": "2026-11-01",
+  "endDate": "2026-11-05",
+  "reason": "Annual testing cycle recovery"
+}
+
+@leaveRequestId = {{submitLeave.response.body.data}}
+
+### 3.4 Get Pending Leave Requests
+GET {{baseUrl}}/leave/requests?status=Pending&page=1&pageSize=10
+Authorization: Bearer {{authToken}}
+
+### 3.5 Approve Leave Request (HR One-Click)
+POST {{baseUrl}}/leave/requests/{{leaveRequestId}}/approve
+Authorization: Bearer {{authToken}}
+
+### ============================================================================
+### 4. BIOMETRIC ATTENDANCE & 60-MIN TARDINESS RULE
+### ============================================================================
+
+### 4.1 Log Attendance Record for Employee
+# @name createAttendance
+POST {{baseUrl}}/attendance
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "employeeId": {{employeeId}},
+  "date": "2026-10-01",
+  "status": 2,
+  "clockIn": "2026-10-01T09:45:00Z",
+  "clockOut": "2026-10-01T17:00:00Z",
+  "lateMinutes": 45,
+  "note": "Biometric terminal check-in"
+}
+
+### 4.2 Query 60-Minute Tardiness Gauge (Under 60 min -> 0 min deductible)
+GET {{baseUrl}}/attendance/tardiness/{{employeeId}}?year=2026&month=10
+Authorization: Bearer {{authToken}}
+
+### 4.3 Inspect Biometric Raw Hardware Logs
+GET {{baseUrl}}/attendance/device-logs?page=1&pageSize=20
+Authorization: Bearer {{authToken}}
+
+### ============================================================================
+### 5. COMPENSATION DESIGNER & AUTOMATED PAYROLL HUB
+### ============================================================================
+
+### 5.1 Set / Upsert Salary Structure for Employee
+POST {{baseUrl}}/payroll/salary-structure/{{employeeId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "basicSalary": 7500,
+  "housingAllowance": 1500,
+  "transportationAllowance": 600,
+  "mealAllowance": 300,
+  "otherAllowances": 200,
+  "overtimePay": 500,
+  "socialInsurance": 750,
+  "taxAmount": 600,
+  "otherDeductions": 100
+}
+
+### 5.2 Read Salary Structure
+GET {{baseUrl}}/payroll/salary-structure/{{employeeId}}
+Authorization: Bearer {{authToken}}
+
+### 5.3 Execute Automated Monthly Payroll Run
+# @name runPayroll
+POST {{baseUrl}}/payroll/run
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "month": 10,
+  "year": 2026,
+  "workingDaysInMonth": 22,
+  "departmentId": {{deptId}}
+}
+
+### 5.4 Query Monthly Payroll Sheet
+GET {{baseUrl}}/payroll/month/10/year/2026?departmentId={{deptId}}
+Authorization: Bearer {{authToken}}
+
+### 5.5 Query Itemized Payslips for Employee
+GET {{baseUrl}}/payroll/employee/{{employeeId}}?year=2026
+Authorization: Bearer {{authToken}}

@@ -4,10 +4,12 @@ using Appllication.Features.Employee.Commands.UpdateEmployee;
 using Appllication.Features.Employee.Queries.GetAllEmployees;
 using Appllication.Features.Employee.Queries.GetEmployeeById;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PL.API.Controllers
 {
+    [Authorize] // Added to secure all Employee operations
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeeController : ControllerBase
@@ -41,6 +43,7 @@ namespace PL.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Create(
             [FromBody] CreateEmployeeDto dto, CancellationToken ct)
         {
@@ -53,6 +56,7 @@ namespace PL.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Update(
             int id, [FromBody] UpdateEmployeeDto dto, CancellationToken ct)
         {
@@ -66,6 +70,7 @@ namespace PL.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
             var result = await _sender.Send(new DeleteEmployeeCommand(id), ct);

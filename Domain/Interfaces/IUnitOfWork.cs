@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,5 +11,6 @@ namespace Domain.Interfaces
     {
         IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : class;
         Task<int> CompleteAsync(CancellationToken cancellationToken = default);
+        Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action);
     }
 }

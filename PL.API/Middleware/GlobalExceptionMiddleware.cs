@@ -1,6 +1,8 @@
 using Appllication.Common;
 using Appllication.Common.Exceptions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,11 +16,13 @@ namespace PL.API.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionMiddleware> _logger;
+        private readonly IWebHostEnvironment _env;
 
-        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger, IWebHostEnvironment env)
         {
             _next = next;
             _logger = logger;
+            _env = env;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -62,7 +66,7 @@ namespace PL.API.Middleware
                 _ => (
                     HttpStatusCode.InternalServerError,
                     ApiResponse.Fail("An unexpected error occurred. Please try again later.", 
-                                     new List<string> { exception.Message }) // Note: Detailed error included for development purposes. In strict production, keep it empty.
+                                     _env.IsDevelopment() ? new List<string> { exception.Message, exception.StackTrace ?? "" } : null) 
                 )
             };
 
