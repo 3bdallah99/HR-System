@@ -216,10 +216,10 @@ import { TranslationService } from '../../core/services/translation.service';
               <div class="card-body d-flex flex-column gap-3">
                 <a routerLink="/payroll/structures" class="text-decoration-none">
                   <div class="p-3 border rounded-4 bg-white shadow-sm hover-elevate transition d-flex align-items-center gap-3">
-                    <div class="stat-icon-wrapper bg-indigo bg-opacity-10 text-primary">
+                    <div class="stat-icon-wrapper bg-indigo bg-opacity-10 text-primary flex-shrink-0">
                       <i class="fas fa-sliders"></i>
                     </div>
-                    <div>
+                    <div class="text-start">
                       <div class="fw-bold text-dark">{{ ts.t().dashboard?.salaryStructureDesigner || 'Salary Structure Designer' }}</div>
                       <div class="text-muted small">{{ ts.t().dashboard?.configureAllowances || 'Configure allowances, overtime & tax rules' }}</div>
                     </div>
@@ -228,10 +228,10 @@ import { TranslationService } from '../../core/services/translation.service';
 
                 <a routerLink="/attendance" class="text-decoration-none">
                   <div class="p-3 border rounded-4 bg-white shadow-sm hover-elevate transition d-flex align-items-center gap-3">
-                    <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning">
+                    <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning flex-shrink-0">
                       <i class="fas fa-user-clock"></i>
                     </div>
-                    <div>
+                    <div class="text-start">
                       <div class="fw-bold text-dark">{{ ts.t().dashboard?.departmentAttendance || 'Department Attendance' }}</div>
                       <div class="text-muted small">{{ ts.t().dashboard?.dailyPunches || 'Daily punches & manual time audit' }}</div>
                     </div>
@@ -240,20 +240,20 @@ import { TranslationService } from '../../core/services/translation.service';
 
                 <a routerLink="/attendance/device-logs" class="text-decoration-none">
                   <div class="p-3 border rounded-4 bg-white shadow-sm hover-elevate transition d-flex align-items-center gap-3">
-                    <div class="stat-icon-wrapper bg-info bg-opacity-10 text-info">
+                    <div class="stat-icon-wrapper bg-info bg-opacity-10 text-info flex-shrink-0">
                       <i class="fas fa-fingerprint"></i>
                     </div>
-                    <div>
-                      <div class="fw-bold text-dark">{{ ts.t().dashboard?.biometricLogs || 'Biometric Hardware Logs' }}</div>
+                    <div class="text-start">
+                      <div class="fw-bold text-dark">{{ ts.t().dashboard?.biometricLogs || ts.t().dashboard?.biometricHardwareLogs || 'Biometric Hardware Logs' }}</div>
                       <div class="text-muted small">{{ ts.t().dashboard?.inspectZKTeco || 'Inspect ZKTeco raw punch events' }}</div>
                     </div>
                   </div>
                 </a>
 
-                <div class="p-3 rounded-4 bg-slate-100 text-muted small mt-auto border glass-card">
-                  <i class="fas fa-info-circle text-primary" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i>
-                  <strong>{{ ts.t().dashboard?.tardinessRuleActive || '60-Min Tardiness Rule Active:' }}</strong> 
-                  {{ ts.t().dashboard?.freeGraceAllowance || 'Free grace allowance resets at the 1st of every month.' }}
+                <div class="p-3 rounded-4 bg-slate-100 text-muted small mt-auto border glass-card text-start">
+                  <i class="fas fa-info-circle text-primary" [ngClass]="ts.isRtl() ? 'ms-2' : 'me-2'"></i>
+                  <strong class="text-dark">{{ ts.t().dashboard?.tardinessRuleActive || '60-Min Tardiness Rule Active:' }}</strong>
+                  <span class="d-inline-block">{{ ts.t().dashboard?.freeGraceAllowance || 'Free grace allowance resets at the 1st of every month.' }}</span>
                 </div>
               </div>
             </div>
