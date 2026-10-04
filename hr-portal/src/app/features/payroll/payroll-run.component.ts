@@ -21,18 +21,18 @@ import { PayrollService } from '../../core/services/payroll.service';
       <div class="card premium-card">
         <div class="card-body">
           <div class="row align-items-end g-3">
-            <div class="col-md-5">
+            <div class="col-12 col-md-4 col-lg-5">
               <label class="form-label">{{ t().payroll?.month || 'Month' }}</label>
               <select class="form-select custom-select" [(ngModel)]="month">
                 <option *ngFor="let m of months" [value]="m">{{ m }}</option>
               </select>
             </div>
-            <div class="col-md-5">
+            <div class="col-12 col-md-4 col-lg-4">
               <label class="form-label">{{ t().payroll?.year || 'Year' }}</label>
               <input type="number" class="form-control custom-input" [(ngModel)]="year">
             </div>
-            <div class="col-md-2">
-              <button class="btn btn-primary w-100 premium-btn d-inline-flex align-items-center justify-content-center text-nowrap" [disabled]="isRunning()" (click)="runPayroll()">
+            <div class="col-12 col-md-4 col-lg-3">
+              <button class="btn btn-primary w-100 premium-btn d-flex align-items-center justify-content-center text-nowrap gap-2" [disabled]="isRunning()" (click)="runPayroll()">
                 <ng-container *ngIf="!isRunning()">
                   <i class="fas fa-cogs"></i>
                   <span>{{ t().payroll?.runBtn || 'Run' }}</span>
