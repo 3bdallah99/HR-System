@@ -3,12 +3,14 @@ import { inject, Injectable } from '@angular/core';
 import {
   ApiResponse,
   PaginatedResult,
+  AttendancePaginatedResult,
   AttendanceRecord,
   DepartmentAttendance,
   TardinessSummary,
-  DeviceLog,
   CreateAttendanceDto,
-  UpdateAttendanceDto
+  UpdateAttendanceDto,
+  UploadAttendanceSheetResult,
+  MonthlyAttendanceMatrix
 } from '../util/models';
 import { environment } from '../../../environments/environment';
 
@@ -52,43 +54,40 @@ export class AttendanceService {
   }
 
   
-  getAll(page: number, pageSize: number, empId?: number, from?: string, to?: string) {
-    return this.http.get<any>(this.baseUrl);
+  getAll(page: number, pageSize: number, empId?: number, from?: string, to?: string, status?: string) {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    if (empId) params = params.set('employeeId', empId);
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    if (status) params = params.set('status', status);
+    return this.http.get<ApiResponse<AttendancePaginatedResult<any>>>(this.baseUrl, { params });
   }
-  clockIn() {
-    return this.http.post<any>(`${this.baseUrl}/clockin`, {});
+
+  uploadAttendanceSheet(file: File) {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.http.post<ApiResponse<UploadAttendanceSheetResult>>(`${this.baseUrl}/upload`, formData);
   }
-  clockOut() {
-    return this.http.post<any>(`${this.baseUrl}/clockout`, {});
+
+  downloadTemplate(format: 'excel' | 'csv' = 'excel') {
+    return this.http.get(`${this.baseUrl}/template?format=${format}`, {
+      responseType: 'blob'
+    });
   }
-  uploadDeviceLog(file: File) {
-    return this.http.post<any>(`${this.baseUrl}/upload`, {});
-  }
-  processDevicePunches() {
-    return this.http.post<any>(`${this.baseUrl}/process`, {});
+
+  getMonthlyMatrix(year: number, month: number, departmentId?: number, isPayrollCycle = false) {
+    let params = new HttpParams()
+      .set('year', year)
+      .set('month', month)
+      .set('isPayrollCycle', isPayrollCycle);
+    if (departmentId) params = params.set('departmentId', departmentId);
+    return this.http.get<ApiResponse<MonthlyAttendanceMatrix>>(
+      `${this.baseUrl}/monthly-matrix`,
+      { params }
+    );
   }
 
   delete(id: number) {
     return this.http.delete<ApiResponse<string>>(`${this.baseUrl}/${id}`);
-  }
-
-  getDeviceLogs(
-    deviceSerial?: string,
-    userPin?: string,
-    employeeId?: number,
-    from?: string,
-    to?: string,
-    isProcessed?: boolean,
-    page = 1,
-    pageSize = 50
-  ) {
-    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
-    if (deviceSerial) params = params.set('deviceSerial', deviceSerial);
-    if (userPin) params = params.set('userPin', userPin);
-    if (employeeId) params = params.set('employeeId', employeeId);
-    if (from) params = params.set('from', from);
-    if (to) params = params.set('to', to);
-    if (isProcessed !== undefined && isProcessed !== null) params = params.set('isProcessed', isProcessed);
-    return this.http.get<ApiResponse<PaginatedResult<DeviceLog>>>(`${this.baseUrl}/device-logs`, { params });
   }
 }

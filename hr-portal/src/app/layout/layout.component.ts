@@ -22,7 +22,7 @@ import { ToastService } from '../core/services/toast.service';
             <div class="logo-icon">
               <i class="fas fa-layer-group"></i>
             </div>
-            <span class="logo-text">{{ ts.t()?.common?.hrPortal || 'HR Portal' }}</span>
+            <span class="logo-text">{{ ts.t()?.common?.hrPortal || (ts.isRtl() ? 'بوابة الموارد البشرية' : 'HR Portal') }}</span>
           </div>
           <button class="close-sidebar d-md-none" (click)="toggleSidebar()">
             <i class="fas fa-times"></i>
@@ -31,7 +31,7 @@ import { ToastService } from '../core/services/toast.service';
 
         <div class="sidebar-nav custom-scrollbar">
           <ul class="nav-list">
-            <li class="nav-label">{{ ts.t()?.common?.menu || 'Menu' }}</li>
+            <li class="nav-label">{{ ts.t()?.common?.menu || (ts.isRtl() ? 'القائمة الرئيسية' : 'Main Menu') }}</li>
             
             @for (item of navItems(); track item.path) {
               <li class="nav-item">
@@ -48,8 +48,8 @@ import { ToastService } from '../core/services/toast.service';
           <div class="user-info-mini">
             <div class="avatar">{{ getUserInitials() }}</div>
             <div class="user-details">
-              <div class="name">{{ authService.currentUser()?.email?.split('@')?.[0] || 'User' }}</div>
-              <div class="role-badge">{{ authService.currentUser()?.role }}</div>
+              <div class="name">{{ getUserDisplayName() }}</div>
+              <div class="role-badge">{{ getUserRoleLabel() }}</div>
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@ import { ToastService } from '../core/services/toast.service';
           </div>
 
           <div class="topbar-right">
-            <button class="action-btn" (click)="toggleTheme()" [title]="isDarkMode() ? 'Light Mode' : 'Dark Mode'">
+            <button class="action-btn" (click)="toggleTheme()" [title]="isDarkMode() ? (ts.t()?.common?.lightMode || 'Light Mode') : (ts.t()?.common?.darkMode || 'Dark Mode')">
               <i class="fas" [class.fa-moon]="!isDarkMode()" [class.fa-sun]="isDarkMode()"></i>
             </button>
             
@@ -87,9 +87,10 @@ import { ToastService } from '../core/services/toast.service';
                   <div class="dropdown-header">
                     <div class="avatar-medium">{{ getUserInitials() }}</div>
                     <div class="user-meta">
-                      <h6>{{ authService.currentUser()?.email }}</h6>
-                      <span class="badge" [class.hr-badge]="authService.isHR()" [class.emp-badge]="!authService.isHR()">
-                        {{ authService.currentUser()?.role }}
+                      <h6>{{ getUserDisplayName() }}</h6>
+                      <div class="user-email text-muted small">{{ authService.currentUser()?.email }}</div>
+                      <span class="badge mt-1" [class.hr-badge]="authService.isHR()" [class.emp-badge]="!authService.isHR()">
+                        {{ getUserRoleLabel() }}
                       </span>
                     </div>
                   </div>
@@ -196,7 +197,6 @@ export class LayoutComponent {
         { path: '/positions', icon: 'fa-briefcase', label: nav.positions || 'Positions' },
         { path: '/leaves', icon: 'fa-calendar-check', label: nav.leaves || 'Leaves' },
         { path: '/attendance', icon: 'fa-user-clock', label: nav.attendance || 'Attendance' },
-        { path: '/attendance/device-logs', icon: 'fa-fingerprint', label: nav.deviceLogs || 'Device Logs' },
         { path: '/payroll/run', icon: 'fa-play-circle', label: nav.payrollRun || 'Payroll Run' },
         { path: '/payroll/payslips', icon: 'fa-file-invoice-dollar', label: nav.payslips || 'Payslips' },
         { path: '/payroll/salary-structures', icon: 'fa-sliders-h', label: nav.salaryStructures || 'Salary Structures' },
@@ -206,7 +206,7 @@ export class LayoutComponent {
       return [
         { path: '/dashboard', icon: 'fa-chart-pie', label: nav.dashboard || 'Dashboard' },
         { path: '/leaves', icon: 'fa-calendar-check', label: nav.myLeaves || 'My Leaves' },
-        { path: '/leave-balances', icon: 'fa-hourglass-half', label: nav.leaveBalances || 'Leave Balances' },
+        { path: '/leaves/balances', icon: 'fa-hourglass-half', label: nav.leaveBalances || 'Leave Balances' },
         { path: '/attendance', icon: 'fa-user-clock', label: nav.myAttendance || 'My Attendance' },
         { path: '/payroll/payslips', icon: 'fa-file-invoice-dollar', label: nav.myPayslips || 'My Payslips' },
       ];
@@ -268,6 +268,21 @@ export class LayoutComponent {
     const email = this.authService.currentUser()?.email || '';
     if (!email) return 'U';
     return email.charAt(0).toUpperCase();
+  }
+
+  getUserDisplayName(): string {
+    const email = this.authService.currentUser()?.email || '';
+    if (!email) return this.ts.t()?.common?.user || (this.ts.isRtl() ? 'مستخدم' : 'User');
+    const raw = email.split('@')[0];
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
+  }
+
+  getUserRoleLabel(): string {
+    const role = this.authService.currentUser()?.role;
+    if (role === 'HR') {
+      return this.ts.t()?.common?.hrAdmin || (this.ts.isRtl() ? 'مسؤول الموارد البشرية' : 'HR Administrator');
+    }
+    return this.ts.t()?.common?.employee || (this.ts.isRtl() ? 'موظف' : 'Employee');
   }
 
   getPageTitle(): string {

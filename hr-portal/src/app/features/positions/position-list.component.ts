@@ -5,33 +5,42 @@ import { PositionService } from '../../core/services/position.service';
 import { DepartmentService } from '../../core/services/department.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { ToastService } from '../../core/services/toast.service';
+import { CurrencyService } from '../../core/services/currency.service';
 
 @Component({
   selector: 'app-position-list',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="page-container animate-fade-in-up" [class.rtl]="ts.isRtl()">
+    <div class="page-container" [class.rtl]="ts.isRtl()">
       <!-- Header -->
-      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div>
-          <h2 class="page-title fw-bold mb-1 text-dark">{{ ts.t()?.positions?.title || 'المناصب الوظيفية' }}</h2>
-          <p class="text-muted mb-0">{{ ts.t()?.positions?.subtitle || 'إدارة المناصب الوظيفية وهياكل الرواتب الأساسية' }}</p>
+      <div class="hr-page-header mb-4">
+        <div class="header-content">
+          <h2 class="page-title mb-0">{{ ts.t()?.positions?.title || (ts.isRtl() ? 'المناصب الوظيفية' : 'Positions') }}</h2>
+          <p class="page-subtitle mb-0">{{ ts.t()?.positions?.subtitle || (ts.isRtl() ? 'إدارة المناصب الوظيفية وهياكل الرواتب الأساسية' : 'Manage job titles and base salary structures') }}</p>
         </div>
-        <button class="btn btn-primary btn-premium rounded-pill px-4 shadow-sm" (click)="toggleForm()">
-          <i class="fas fa-plus" [class.ms-2]="ts.isRtl()" [class.me-2]="!ts.isRtl()"></i>
-          {{ ts.t()?.common?.add || 'إضافة منصب' }}
-        </button>
+        <div class="header-actions">
+          <button class="btn btn-primary d-flex align-items-center gap-2" (click)="toggleForm()">
+            <i class="fas fa-plus"></i>
+            {{ ts.t()?.common?.add || (ts.isRtl() ? 'إضافة منصب' : 'Add Position') }}
+          </button>
+        </div>
       </div>
 
       <!-- Search Bar -->
-      <div class="search-container mb-4 ms-auto" style="max-width: 450px;">
-        <div class="input-group glass-input-group shadow-sm">
-          <span class="input-group-text border-0">
-            <i class="fas fa-search text-muted"></i>
-          </span>
-          <input type="text" class="form-control border-0 py-3" [placeholder]="ts.t()?.common?.search || 'بحث في المناصب...'"
-                 [value]="searchTerm()" (input)="updateSearch($event)">
+      <div class="hr-filter-bar mb-4" style="grid-template-columns: 2fr auto; align-items: end;">
+        <div class="filter-item">
+          <label class="filter-label">{{ ts.t()?.common?.search || (ts.isRtl() ? 'بحث في المناصب...' : 'Search positions...') }}</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 text-muted">
+              <i class="fas fa-search"></i>
+            </span>
+            <input type="text" class="form-control border-start-0" [placeholder]="ts.t()?.common?.search || (ts.isRtl() ? 'بحث في المناصب...' : 'Search positions...')"
+                   [value]="searchTerm()" (input)="updateSearch($event)">
+          </div>
+        </div>
+        <div class="filter-item text-md-end text-muted small align-self-center pb-2">
+          <span>{{ ts.isRtl() ? 'إجمالي المناصب:' : 'Total Positions:' }} <strong class="text-primary financial-num">{{ filteredData().length }}</strong></span>
         </div>
       </div>
 
@@ -68,7 +77,7 @@ import { ToastService } from '../../core/services/toast.service';
                 <!-- Base Salary -->
                 <div class="col-md-4">
                   <div class="form-floating">
-                    <input type="number" class="form-control" id="baseSalary" formControlName="baseSalary" placeholder="الراتب الأساسي">
+                    <input type="number" class="form-control" id="baseSalary" formControlName="baseSalary" (wheel)="$any($event.target).blur()" placeholder="الراتب الأساسي">
                     <label for="baseSalary">{{ ts.isRtl() ? 'الراتب الأساسي' : 'Base Salary' }} *</label>
                   </div>
                 </div>
@@ -90,32 +99,32 @@ import { ToastService } from '../../core/services/toast.service';
       </div>
 
       <!-- Data Table -->
-      <div class="card premium-card border-0 shadow-sm overflow-hidden">
+      <div class="hr-table-card mb-4">
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
+          <table class="hr-table">
+            <thead>
               <tr>
-                <th class="py-3 px-4">{{ ts.isRtl() ? 'المسمى الوظيفي' : 'Job Title' }}</th>
-                <th class="py-3 px-4">{{ ts.isRtl() ? 'القسم' : 'Department' }}</th>
-                <th class="py-3 px-4">{{ ts.isRtl() ? 'الراتب الأساسي' : 'Base Salary' }}</th>
-                <th class="py-3 px-4 text-end">{{ ts.t()?.common?.actions || 'الإجراءات' }}</th>
+                <th>{{ ts.isRtl() ? 'المسمى الوظيفي' : 'Job Title' }}</th>
+                <th>{{ ts.isRtl() ? 'القسم' : 'Department' }}</th>
+                <th>{{ ts.isRtl() ? 'الراتب الأساسي' : 'Base Salary' }}</th>
+                <th class="text-end">{{ ts.t()?.common?.actions || (ts.isRtl() ? 'الإجراءات' : 'Actions') }}</th>
               </tr>
             </thead>
             <tbody>
               <!-- Skeleton Loading -->
               <ng-container *ngIf="loading()">
                 <tr *ngFor="let i of [1,2,3]">
-                  <td class="px-4 py-3"><div class="skeleton-text w-75"></div></td>
-                  <td class="px-4 py-3"><div class="skeleton-text w-50"></div></td>
-                  <td class="px-4 py-3"><div class="skeleton-text w-25"></div></td>
-                  <td class="px-4 py-3 text-end"><div class="skeleton-text w-50 d-inline-block"></div></td>
+                  <td><div class="skeleton-text w-75"></div></td>
+                  <td><div class="skeleton-text w-50"></div></td>
+                  <td><div class="skeleton-text w-25"></div></td>
+                  <td class="text-end"><div class="skeleton-text w-50 d-inline-block"></div></td>
                 </tr>
               </ng-container>
 
               <!-- Data Rows -->
               <ng-container *ngIf="!loading() && filteredData().length > 0">
                 <tr *ngFor="let item of filteredData()">
-                  <td class="px-4 py-3 fw-bold">
+                  <td class="fw-bold">
                     <div class="d-flex align-items-center">
                       <div class="icon-circle me-3" [class.ms-3]="ts.isRtl()" [class.me-3]="!ts.isRtl()">
                         <i class="fas fa-briefcase"></i>
@@ -123,21 +132,25 @@ import { ToastService } from '../../core/services/toast.service';
                       {{ item.title }}
                     </div>
                   </td>
-                  <td class="px-4 py-3">
-                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                  <td>
+                    <span class="hr-badge badge-neutral">
                       {{ item.departmentName || '-' }}
                     </span>
                   </td>
-                  <td class="px-4 py-3 fw-bold text-success">
-                    {{ item.baseSalary | currency }}
+                  <td>
+                    <span class="financial-num fw-bold text-success">
+                      {{ item.baseSalary | number:'1.2-2' }} {{ currency.currencySymbol() }}
+                    </span>
                   </td>
-                  <td class="px-4 py-3 text-end">
-                    <button class="btn btn-sm btn-icon btn-light me-2 rounded-circle transition-all" (click)="edit(item)" title="تعديل">
-                      <i class="fas fa-edit text-primary"></i>
-                    </button>
-                    <button class="btn btn-sm btn-icon btn-light rounded-circle transition-all" (click)="delete(item.id)" title="حذف">
-                      <i class="fas fa-trash text-danger"></i>
-                    </button>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      <button class="btn btn-sm btn-outline-primary" (click)="edit(item)" title="تعديل">
+                        <i class="fas fa-pen"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" (click)="delete(item.id)" title="حذف">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </ng-container>
@@ -272,6 +285,7 @@ export class PositionListComponent implements OnInit {
   svc = inject(PositionService);
   deptSvc = inject(DepartmentService);
   fb = inject(FormBuilder);
+  currency = inject(CurrencyService);
 
   data = signal<any[]>([]);
   departments = signal<any[]>([]);

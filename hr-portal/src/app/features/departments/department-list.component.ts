@@ -10,15 +10,15 @@ import { ToastService } from '../../core/services/toast.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="page-container animate-fade-in-up" [class.rtl]="ts.isRtl()">
+    <div class="page-container" [class.rtl]="ts.isRtl()">
       <!-- Header -->
-      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div>
-          <h2 class="page-title fw-bold mb-1 text-dark">{{ ts.isRtl() ? 'أقسام الشركة' : 'Departments' }}</h2>
-          <p class="text-muted mb-0">{{ ts.isRtl() ? 'إدارة الهيكل التنظيمي وأقسام العمل وفروعها' : 'Manage organizational structure and company departments' }}</p>
+      <div class="hr-page-header mb-4">
+        <div class="header-content">
+          <h2 class="page-title mb-0">{{ ts.isRtl() ? 'أقسام الشركة' : 'Departments' }}</h2>
+          <p class="page-subtitle mb-0">{{ ts.isRtl() ? 'إدارة الهيكل التنظيمي وأقسام العمل وفروعها' : 'Manage organizational structure and company departments' }}</p>
         </div>
 
-        <div class="d-flex align-items-center gap-3">
+        <div class="header-actions">
           <!-- View Switcher -->
           <div class="view-mode-toggle btn-group p-1 rounded-pill bg-surface border">
             <button class="btn btn-sm rounded-pill px-3" [class.active]="viewMode() === 'table'" (click)="viewMode.set('table')">
@@ -30,29 +30,28 @@ import { ToastService } from '../../core/services/toast.service';
           </div>
 
           <!-- Add Button -->
-          <button class="btn btn-primary btn-premium rounded-pill px-4 shadow-sm" (click)="toggleForm()">
-            <i class="fas fa-plus" [class.ms-2]="ts.isRtl()" [class.me-2]="!ts.isRtl()"></i>
+          <button class="btn btn-primary d-flex align-items-center gap-2" (click)="toggleForm()">
+            <i class="fas fa-plus"></i>
             {{ ts.isRtl() ? 'إضافة قسم جديد' : 'Add Department' }}
           </button>
         </div>
       </div>
 
       <!-- Search & Stats Toolbar -->
-      <div class="toolbar-card card border-0 shadow-sm p-3 mb-4 rounded-4">
-        <div class="row g-3 align-items-center">
-          <div class="col-md-6">
-            <div class="input-group glass-input-group">
-              <span class="input-group-text border-0 bg-transparent text-muted ps-3">
-                <i class="fas fa-search"></i>
-              </span>
-              <input type="text" class="form-control border-0 bg-transparent py-2" 
-                     [placeholder]="ts.isRtl() ? 'بحث عن قسم بالاسم...' : 'Search departments by name...'"
-                     [value]="searchTerm()" (input)="updateSearch($event)">
-            </div>
+      <div class="hr-filter-bar mb-4" style="grid-template-columns: 2fr auto; align-items: end;">
+        <div class="filter-item">
+          <label class="filter-label">{{ ts.isRtl() ? 'بحث بالاسم' : 'Search' }}</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 text-muted">
+              <i class="fas fa-search"></i>
+            </span>
+            <input type="text" class="form-control border-start-0" 
+                   [placeholder]="ts.isRtl() ? 'بحث عن قسم بالاسم...' : 'Search departments by name...'"
+                   [value]="searchTerm()" (input)="updateSearch($event)">
           </div>
-          <div class="col-md-6 text-md-end text-muted small">
-            <span>{{ ts.isRtl() ? 'إجمالي الأقسام:' : 'Total Departments:' }} <strong class="text-primary">{{ filteredData().length }}</strong></span>
-          </div>
+        </div>
+        <div class="filter-item text-md-end text-muted small align-self-center pb-2">
+          <span>{{ ts.isRtl() ? 'إجمالي الأقسام:' : 'Total Departments:' }} <strong class="text-primary financial-num">{{ filteredData().length }}</strong></span>
         </div>
       </div>
 
@@ -164,25 +163,25 @@ import { ToastService } from '../../core/services/toast.service';
 
       <!-- VIEW 2: Modern Table -->
       @if (viewMode() === 'table') {
-        <div class="card modern-table-card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="hr-table-card mb-4">
           <div class="table-responsive">
-            <table class="table modern-table align-middle mb-0">
+            <table class="hr-table">
               <thead>
                 <tr>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'اسم القسم' : 'Department Name' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'عدد الموظفين' : 'Employees' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'المناصب الوظيفية' : 'Positions' }}</th>
-                  <th class="py-3 px-4 text-end">{{ ts.isRtl() ? 'الإجراءات' : 'Actions' }}</th>
+                  <th>{{ ts.isRtl() ? 'اسم القسم' : 'Department Name' }}</th>
+                  <th>{{ ts.isRtl() ? 'عدد الموظفين' : 'Employees' }}</th>
+                  <th>{{ ts.isRtl() ? 'المناصب الوظيفية' : 'Positions' }}</th>
+                  <th class="text-end">{{ ts.isRtl() ? 'الإجراءات' : 'Actions' }}</th>
                 </tr>
               </thead>
               <tbody>
                 @if (loading()) {
                   @for (i of [1,2,3]; track i) {
                     <tr>
-                      <td class="px-4 py-3"><div class="skeleton-text w-75"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-25"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-25"></div></td>
-                      <td class="px-4 py-3 text-end"><div class="skeleton-text w-50 d-inline-block"></div></td>
+                      <td><div class="skeleton-text w-75"></div></td>
+                      <td><div class="skeleton-text w-25"></div></td>
+                      <td><div class="skeleton-text w-25"></div></td>
+                      <td class="text-end"><div class="skeleton-text w-50 d-inline-block"></div></td>
                     </tr>
                   }
                 }
@@ -190,7 +189,7 @@ import { ToastService } from '../../core/services/toast.service';
                 @if (!loading() && filteredData().length > 0) {
                   @for (item of filteredData(); track item.id) {
                     <tr class="modern-row" (click)="viewDepartmentDetails(item)">
-                      <td class="px-4 py-3">
+                      <td>
                         <div class="d-flex align-items-center">
                           <div class="dept-icon-box sm me-3" [class.ms-3]="ts.isRtl()" [class.me-3]="!ts.isRtl()" [style.background]="getDeptGradient(item.id)">
                             <i class="fas fa-sitemap"></i>
@@ -201,23 +200,25 @@ import { ToastService } from '../../core/services/toast.service';
                           </div>
                         </div>
                       </td>
-                      <td class="px-4 py-3">
-                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                      <td>
+                        <span class="hr-badge badge-neutral">
                           <i class="fas fa-users me-1"></i> {{ item.employeeCount || 0 }} {{ ts.isRtl() ? 'موظف' : 'Employees' }}
                         </span>
                       </td>
-                      <td class="px-4 py-3">
-                        <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill">
+                      <td>
+                        <span class="hr-badge badge-info">
                           <i class="fas fa-briefcase me-1"></i> {{ item.positionCount || 0 }} {{ ts.isRtl() ? 'منصب' : 'Positions' }}
                         </span>
                       </td>
-                      <td class="px-4 py-3 text-end" (click)="$event.stopPropagation()">
-                        <button class="btn btn-sm btn-icon btn-light me-1 rounded-circle shadow-sm" (click)="edit(item)" title="تعديل">
-                          <i class="fas fa-pen text-primary"></i>
-                        </button>
-                        <button class="btn btn-sm btn-icon btn-light rounded-circle shadow-sm" (click)="delete(item.id)" title="حذف">
-                          <i class="fas fa-trash text-danger"></i>
-                        </button>
+                      <td class="text-end" (click)="$event.stopPropagation()">
+                        <div class="btn-group btn-group-sm">
+                          <button class="btn btn-sm btn-outline-primary" (click)="edit(item)" title="تعديل">
+                            <i class="fas fa-pen"></i>
+                          </button>
+                          <button class="btn btn-sm btn-outline-danger" (click)="delete(item.id)" title="حذف">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   }

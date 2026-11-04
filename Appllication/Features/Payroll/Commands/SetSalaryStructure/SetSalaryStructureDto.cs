@@ -9,5 +9,6 @@ namespace Appllication.Features.Payroll.Commands.SetSalaryStructure
         decimal OvertimePay = 0,
         decimal SocialInsurance = 0,
         decimal TaxAmount = 0,
-        decimal OtherDeductions = 0);
+        decimal OtherDeductions = 0,
+        int? EmployeeId = null);
 }

@@ -10,6 +10,7 @@ using Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using PL.API.Extensions;
 
 namespace PL.API.Controllers
 {
@@ -35,6 +36,9 @@ namespace PL.API.Controllers
             [FromQuery] int pageSize = 20,
             CancellationToken ct = default)
         {
+            if (!User.TryGetAuthorizedEmployeeId(employeeId, out _))
+                return Forbid();
+
             var result = await _sender.Send(
                 new GetLeaveRequestsByEmployeeQuery(employeeId, status, year, page, pageSize), ct);
             return Ok(result);
@@ -42,6 +46,7 @@ namespace PL.API.Controllers
 
         // GET /api/leave/requests?status=Pending&departmentId=2
         [HttpGet("requests")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetAll(
             [FromQuery] LeaveStatus? status = null,
             [FromQuery] int? departmentId = null,
@@ -61,6 +66,9 @@ namespace PL.API.Controllers
             [FromQuery] int? year = null,
             CancellationToken ct = default)
         {
+            if (!User.TryGetAuthorizedEmployeeId(employeeId, out _))
+                return Forbid();
+
             var result = await _sender.Send(
                 new GetLeaveBalancesQuery(employeeId, year), ct);
             return Ok(result);
@@ -71,6 +79,9 @@ namespace PL.API.Controllers
         public async Task<IActionResult> Submit(
             [FromBody] SubmitLeaveRequestDto dto, CancellationToken ct)
         {
+            if (!User.TryGetAuthorizedEmployeeId(dto.EmployeeId, out _))
+                return Forbid();
+
             var command = new SubmitLeaveRequestCommand(
                 dto.EmployeeId, dto.LeaveType, dto.StartDate, dto.EndDate, dto.Reason);
             var result = await _sender.Send(command, ct);
@@ -103,6 +114,9 @@ namespace PL.API.Controllers
         public async Task<IActionResult> Cancel(
             int id, [FromQuery] int employeeId, CancellationToken ct)
         {
+            if (!User.TryGetAuthorizedEmployeeId(employeeId, out _))
+                return Forbid();
+
             var result = await _sender.Send(
                 new CancelLeaveRequestCommand(id, employeeId), ct);
             return Ok(result);

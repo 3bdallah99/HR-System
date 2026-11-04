@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TranslationService } from '../../core/services/translation.service';
 import { ToastService } from '../../core/services/toast.service';
 import { LeaveService } from '../../core/services/leave.service';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-leave-balances',
@@ -10,91 +11,108 @@ import { LeaveService } from '../../core/services/leave.service';
   imports: [CommonModule],
   template: `
     <div class="page-container" [dir]="ts.isRtl() ? 'rtl' : 'ltr'" [class.rtl]="ts.isRtl()">
-      <div class="page-header mb-4">
-        <h2 class="fw-bold mb-1"><i class="fas fa-scale-balanced text-primary me-2"></i>{{ ts.t().leaveBalances.title }}</h2>
-        <p class="text-muted mb-0">{{ ts.t().leaveBalances.subtitle }}</p>
+      <!-- Page Header -->
+      <div class="hr-page-header mb-4">
+        <div class="header-content">
+          <h2 class="page-title mb-0">
+            <i class="fas fa-scale-balanced text-primary me-2"></i>
+            {{ ts.t().leaveBalances?.title || ts.t().nav?.leaveBalances || (ts.isRtl() ? 'أرصدة الإجازات' : 'Leave Balances') }}
+          </h2>
+          <p class="page-subtitle mb-0">{{ ts.t().leaveBalances?.subtitle || (ts.isRtl() ? 'استعراض الحصص المخصصة والمستهلكة والمتبقية من الإجازات' : 'View your allocated, used, and remaining leave days') }}</p>
+        </div>
       </div>
 
-      <div class="card border-0 shadow-sm glass-card">
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="bg-light">
-                <tr>
-                  <th class="border-0 rounded-start ps-4">{{ ts.t().common.employee }}</th>
-                  <th class="border-0 text-center"><i class="fas fa-umbrella-beach me-2 text-primary"></i>Annual</th>
-                  <th class="border-0 text-center"><i class="fas fa-notes-medical me-2 text-danger"></i>Sick</th>
-                  <th class="border-0 text-center"><i class="fas fa-user me-2 text-warning"></i>Personal</th>
-                  <th class="border-0 text-center rounded-end"><i class="fas fa-baby me-2 text-info"></i>Maternity</th>
-                </tr>
-              </thead>
-              <tbody>
-                @if (loading()) {
-                  <tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></td></tr>
-                } @else if (items().length === 0) {
-                  <tr><td colspan="5" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-3x mb-3 opacity-50"></i><br>{{ ts.t().common.noData }}</td></tr>
-                } @else {
-                  @for (item of items(); track item.employeeId) {
-                    <tr>
-                      <td class="ps-4 fw-medium">{{ item.employeeName || item.employeeId }}</td>
-                      <td class="text-center">
-                        <div class="balance-pill bg-primary-subtle text-primary">{{ item.annual || 0 }}</div>
-                      </td>
-                      <td class="text-center">
-                        <div class="balance-pill bg-danger-subtle text-danger">{{ item.sick || 0 }}</div>
-                      </td>
-                      <td class="text-center">
-                        <div class="balance-pill bg-warning-subtle text-warning">{{ item.personal || 0 }}</div>
-                      </td>
-                      <td class="text-center">
-                        <div class="balance-pill bg-info-subtle text-info">{{ item.maternity || 0 }}</div>
-                      </td>
-                    </tr>
-                  }
-                }
-              </tbody>
-            </table>
+      <!-- Balance Cards Grid (Overview) -->
+      <div class="hr-stats-grid mb-4" *ngIf="!loading() && items().length > 0">
+        <div class="hr-stat-card" *ngFor="let item of items()">
+          <div class="stat-icon text-primary bg-primary bg-opacity-10">
+            <i class="fas fa-calendar-check"></i>
           </div>
+          <div class="stat-content">
+            <span class="stat-label">{{ item.leaveType }}</span>
+            <span class="stat-value financial-num text-success">{{ item.remainingDays || 0 }}</span>
+            <span class="stat-sub text-muted">
+              {{ ts.isRtl() ? 'متبقي من إجمالي' : 'left of' }} {{ item.totalDays || 0 }} {{ ts.isRtl() ? 'يوم' : 'days' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Table Card -->
+      <div class="hr-table-card mb-4">
+        <div class="table-responsive">
+          <table class="hr-table">
+            <thead>
+              <tr>
+                <th>{{ ts.t().leaves?.leaveType || (ts.isRtl() ? 'نوع الإجازة' : 'Leave Type') }}</th>
+                <th class="text-center">{{ ts.t().leaveBalances?.totalDays || (ts.isRtl() ? 'إجمالي الحصة' : 'Total Days') }}</th>
+                <th class="text-center">{{ ts.t().leaveBalances?.usedDays || (ts.isRtl() ? 'المستهلك' : 'Used Days') }}</th>
+                <th class="text-center">{{ ts.t().leaveBalances?.remainingDays || (ts.isRtl() ? 'الرصيد المتبقي' : 'Remaining Days') }}</th>
+                <th>{{ ts.isRtl() ? 'نسبة الاستهلاك' : 'Utilization' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (loading()) {
+                <tr>
+                  <td colspan="5" class="text-center py-5">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                    <span class="text-muted small">{{ ts.isRtl() ? 'جاري التحميل...' : 'Loading...' }}</span>
+                  </td>
+                </tr>
+              } @else if (items().length === 0) {
+                <tr>
+                  <td colspan="5" class="text-center py-5 text-muted">
+                    <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i><br>
+                    {{ ts.t().leaveBalances?.noBalancesFound || ts.t().common?.noData || (ts.isRtl() ? 'لا توجد أرصدة إجازة متاحة' : 'No Balances Found') }}
+                  </td>
+                </tr>
+              } @else {
+                @for (item of items(); track item.id || item.leaveType) {
+                  <tr>
+                    <td>
+                      <span class="hr-badge badge-neutral">
+                        {{ item.leaveType }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <span class="financial-num fw-bold">{{ item.totalDays || 0 }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="hr-badge badge-danger financial-num">{{ item.usedDays || 0 }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="hr-badge badge-success financial-num">{{ item.remainingDays || 0 }}</span>
+                    </td>
+                    <td style="min-width: 140px;">
+                      <div class="progress rounded-pill bg-light" style="height: 8px;">
+                        <div
+                          class="progress-bar rounded-pill"
+                          [ngClass]="item.remainingDays > 5 ? 'bg-success' : (item.remainingDays > 0 ? 'bg-warning' : 'bg-danger')"
+                          [style.width.%]="item.totalDays > 0 ? ((item.remainingDays / item.totalDays) * 100) : 0"></div>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   `,
   styles: [`
-    
     .page-container {
       padding: 1.5rem 0;
       background-color: transparent;
       font-family: inherit;
     }
-  
-    .glass-card { background: var(--bg-surface-solid, #ffffff); backdrop-filter: blur(10px); border-radius: 16px; }
-    .table > :not(caption) > * > * { padding: 1rem 0.5rem; background: transparent; }
-    
-    .balance-pill { 
-      display: inline-block; 
-      min-width: 40px; 
-      padding: 0.25rem 0.75rem; 
-      border-radius: 20px; 
-      font-weight: 600; 
-      font-size: 0.9rem;
-    }
-    
-    .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1); }
-    .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.1); }
-    .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1); }
-    .bg-info-subtle { background-color: rgba(13, 202, 240, 0.1); }
-    
-    .rtl { font-family: 'Cairo', sans-serif; }
-    .rtl .me-1, .rtl .me-2 { margin-left: 0.5rem !important; margin-right: 0 !important; }
-    .rtl .ps-4 { padding-right: 1.5rem !important; padding-left: 0 !important; }
-    
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   `]
 })
 export class LeaveBalancesComponent {
   ts = inject(TranslationService);
   toast = inject(ToastService);
   leaveSvc = inject(LeaveService);
+  authService = inject(AuthService);
   
   items = signal<any[]>([]);
   loading = signal(false);
@@ -104,14 +122,20 @@ export class LeaveBalancesComponent {
   }
 
   loadData() {
+    const empId = this.authService.getEmployeeId();
+    if (!empId) {
+      this.items.set([]);
+      return;
+    }
+
     this.loading.set(true);
-    this.leaveSvc.getBalances(1).subscribe({
+    this.leaveSvc.getBalances(empId).subscribe({
       next: (res: any) => {
         this.items.set((Array.isArray(res.data) ? res.data : (res.data?.items || [])));
         this.loading.set(false);
       },
       error: () => {
-        this.toast.show(this.ts.t().common.error || 'Error', 'error');
+        this.toast.show(this.ts.t().common?.error || 'Error', 'error');
         this.loading.set(false);
       }
     });

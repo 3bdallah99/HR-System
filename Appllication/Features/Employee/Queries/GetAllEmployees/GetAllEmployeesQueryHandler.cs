@@ -48,7 +48,8 @@ namespace Appllication.Features.Employee.Queries.GetAllEmployees
                     e.Position.Title,
                     e.Position.BaseSalary,
                     e.Department.Name,
-                    e.Manager != null ? e.Manager.Name : null
+                    e.Manager != null ? e.Manager.Name : null,
+                    e.BadgeNumber
                 ))
                 .ToListAsync(cancellationToken);
 

@@ -98,24 +98,28 @@ sequenceDiagram
 
 ---
 
-### 3.2 Attendance & Biometric Tracking
+### 3.2 Attendance & Ingestion (Sheet Upload & Biometric Tracking)
 
-All daily attendance records are driven **exclusively through Biometric Fingerprint/Face Devices** (ZKTeco protocol). Manual employee clock-in/out endpoints have been decommissioned.
+Daily attendance records can be ingested either through **Attendance Sheet Upload** (Excel `.xlsx` / CSV `.csv` / USB device logs `.txt`, `.dat`) or pushed directly via **Biometric Fingerprint/Face Devices** (ZKTeco push protocol). Manual employee clock-in/out endpoints have been decommissioned.
 
 ```mermaid
 flowchart TD
-    Device["ZKTeco Biometric Machine"] -- Push Punch Data --> Endpoint["POST /api/attendance/iclock/cdata"]
-    Endpoint --> Parse["Parse ATTLOG (PIN, Timestamp, InOutMode)"]
+    Sheet["Attendance Sheet (Excel .xlsx / CSV)"] -- Upload --> UploadEP["POST /api/attendance/upload"]
+    Device["ZKTeco Biometric Machine"] -- Push Punch Data --> DeviceEP["POST /api/attendance/iclock/cdata"]
+    
+    UploadEP --> Parse["Parse Rows (PIN/EmpId, Date, ClockIn, ClockOut)"]
+    DeviceEP --> Parse
+    
     Parse --> CheckEmp{"Is Employee Active?"}
-    CheckEmp -- No --> LogErr["Save DeviceAttendanceLog (Error)"]
-    CheckEmp -- Yes --> FindRecord{"AttendanceRecord for Today exists?"}
+    CheckEmp -- No --> LogErr["Report Row Error / Save Log"]
+    CheckEmp -- Yes --> FindRecord{"AttendanceRecord for Date exists?"}
     
     FindRecord -- No & CheckIn --> CreateRecord["Create Record:
-    Punch <= 09:00 -> Status: Present, LateMinutes: 0
-    Punch > 09:00  -> Status: Late, LateMinutes: Punch - 09:00"]
+    ClockIn <= 09:00 -> Status: Present, LateMinutes: 0
+    ClockIn > 09:00  -> Status: Late, LateMinutes: ClockIn - 09:00"]
     FindRecord -- No & CheckOut --> CreateOutOnly["Create Record with ClockOut only"]
     
-    FindRecord -- Yes & CheckIn --> UpdateIn["Update ClockIn if earlier, recalculate LateMinutes"]
+    FindRecord -- Yes & CheckIn --> UpdateIn["Update ClockIn, recalculate LateMinutes & Status"]
     FindRecord -- Yes & CheckOut --> UpdateOut["Update ClockOut if later"]
 ```
 
@@ -292,6 +296,8 @@ erDiagram
 ### ⏰ Attendance (`/api/attendance`)
 | Method | Endpoint | Authorization | Description |
 | :--- | :--- | :--- | :--- |
+| `POST` | `/api/attendance/upload` | `HR` (AdminOnly) | Uploads & parses attendance sheet (Excel `.xlsx` / CSV `.csv` / USB log). |
+| `GET` | `/api/attendance/template` | `HR` (AdminOnly) | Downloads sample attendance import template (format=`excel` or `csv`). |
 | `POST` | `/api/attendance/iclock/cdata` | Public / Device | Receives ZKTeco push punches. |
 | `GET` | `/api/attendance/tardiness/{employeeId}` | `HR` (AdminOnly) | Retrieves monthly tardiness breakdown & deductible minutes. |
 | `GET` | `/api/attendance/employee/{employeeId}` | Authenticated | Paginated attendance records for employee. |

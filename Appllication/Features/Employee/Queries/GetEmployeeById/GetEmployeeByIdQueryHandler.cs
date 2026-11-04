@@ -38,7 +38,8 @@ namespace Appllication.Features.Employee.Queries.GetEmployeeById
                     e.DepartmentId,
                     e.Department.Name,
                     e.ManagerId,
-                    e.Manager != null ? e.Manager.Name : null
+                    e.Manager != null ? e.Manager.Name : null,
+                    e.BadgeNumber
                 ))
                 .FirstOrDefaultAsync(cancellationToken);
 

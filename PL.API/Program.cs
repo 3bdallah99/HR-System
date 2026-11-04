@@ -226,14 +226,13 @@ namespace PL.API
             if (!app.Environment.IsDevelopment())
             {
                 app.UseHsts();
+                app.UseHttpsRedirection();
             }
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
             app.UseCors("AllowAll");
-
-            app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();

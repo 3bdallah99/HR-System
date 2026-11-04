@@ -31,11 +31,11 @@ namespace Appllication.Features.Attendance.Queries.GetTardinessSummary
             if (employee is null)
                 throw new NotFoundException(nameof(Domain.Entities.Employee), request.EmployeeId);
 
-            // Define the month boundary
-            var from = new DateTime(request.Year, request.Month, 1);
-            var to = from.AddMonths(1).AddTicks(-1);
+            // Define the payroll cycle boundary (26th of previous month to 25th of current month)
+            var monthEnd = new DateTime(request.Year, request.Month, 25);
+            var monthStart = monthEnd.AddMonths(-1).AddDays(1);
 
-            // Query all Late records in this month for this employee
+            // Query all Late records in this payroll cycle for this employee
             var lateRecords = await _unitOfWork
                 .GetRepository<Domain.Entities.AttendanceRecord>()
                 .GetQueryable()
@@ -43,8 +43,8 @@ namespace Appllication.Features.Attendance.Queries.GetTardinessSummary
                 .Where(ar =>
                     ar.EmployeeId == request.EmployeeId &&
                     ar.Status == AttendanceStatus.Late &&
-                    ar.Date >= from &&
-                    ar.Date <= to)
+                    ar.Date >= monthStart &&
+                    ar.Date <= monthEnd)
                 .ToListAsync(cancellationToken);
 
             int totalLateMinutes = lateRecords.Sum(ar => ar.LateMinutes);

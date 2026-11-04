@@ -11,15 +11,15 @@ import { ToastService } from '../../core/services/toast.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="page-container animate-fade-in-up" [class.rtl]="ts.isRtl()">
+    <div class="page-container" [class.rtl]="ts.isRtl()">
       <!-- Top Header & Actions -->
-      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div>
-          <h2 class="page-title fw-bold mb-1 text-dark">{{ ts.isRtl() ? 'طلبات الإجازات' : 'Leave Requests' }}</h2>
-          <p class="text-muted mb-0">{{ ts.isRtl() ? 'متابعة وإدارة ومراجعة طلبات إجازات الموظفين' : 'Manage, review, and submit leave requests' }}</p>
+      <div class="hr-page-header mb-4">
+        <div class="header-content">
+          <h2 class="page-title mb-0">{{ ts.isRtl() ? 'طلبات الإجازات' : 'Leave Requests' }}</h2>
+          <p class="page-subtitle mb-0">{{ ts.isRtl() ? 'متابعة وإدارة ومراجعة طلبات إجازات الموظفين' : 'Manage, review, and submit leave requests' }}</p>
         </div>
 
-        <div class="d-flex align-items-center gap-3">
+        <div class="header-actions">
           <!-- View Switcher -->
           <div class="view-mode-toggle btn-group p-1 rounded-pill bg-surface border">
             <button class="btn btn-sm rounded-pill px-3" [class.active]="viewMode() === 'table'" (click)="viewMode.set('table')">
@@ -31,39 +31,39 @@ import { ToastService } from '../../core/services/toast.service';
           </div>
 
           <!-- Request Leave Button -->
-          <button class="btn btn-primary btn-premium rounded-pill px-4 shadow-sm" (click)="toggleForm()">
-            <i class="fas fa-calendar-plus" [class.ms-2]="ts.isRtl()" [class.me-2]="!ts.isRtl()"></i>
+          <button class="btn btn-primary d-flex align-items-center gap-2" (click)="toggleForm()">
+            <i class="fas fa-calendar-plus"></i>
             {{ ts.isRtl() ? 'طلب إجازة جديدة' : 'Request Leave' }}
           </button>
         </div>
       </div>
 
       <!-- Filter Toolbar -->
-      <div class="toolbar-card card border-0 shadow-sm p-3 mb-4 rounded-4">
-        <div class="row g-3 align-items-center">
-          <div class="col-md-4">
-            <div class="input-group glass-input-group">
-              <span class="input-group-text border-0 bg-transparent text-muted ps-3">
-                <i class="fas fa-search"></i>
-              </span>
-              <input type="text" class="form-control border-0 bg-transparent py-2" 
-                     [placeholder]="ts.isRtl() ? 'بحث بالاسم أو السبب...' : 'Search by name or reason...'"
-                     [value]="searchTerm()" (input)="updateSearch($event)">
-            </div>
+      <div class="hr-filter-bar mb-4" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) auto; align-items: end;">
+        <div class="filter-item">
+          <label class="filter-label">{{ ts.isRtl() ? 'البحث السريع' : 'Search' }}</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 text-muted">
+              <i class="fas fa-search"></i>
+            </span>
+            <input type="text" class="form-control border-start-0" 
+                   [placeholder]="ts.isRtl() ? 'بحث بالاسم أو السبب...' : 'Search by name or reason...'"
+                   [value]="searchTerm()" (input)="updateSearch($event)">
           </div>
+        </div>
 
-          <div class="col-md-4">
-            <select class="form-select border-0 bg-surface-select py-2 rounded-3" (change)="onStatusFilter($event)">
-              <option value="">{{ ts.isRtl() ? 'جميع الحالات' : 'All Statuses' }}</option>
-              <option value="Pending">{{ ts.isRtl() ? 'قيد الانتظار (Pending)' : 'Pending' }}</option>
-              <option value="Approved">{{ ts.isRtl() ? 'تمت الموافقة (Approved)' : 'Approved' }}</option>
-              <option value="Rejected">{{ ts.isRtl() ? 'مرفوض (Rejected)' : 'Rejected' }}</option>
-            </select>
-          </div>
+        <div class="filter-item">
+          <label class="filter-label">{{ ts.isRtl() ? 'الحالة' : 'Status' }}</label>
+          <select class="form-select" (change)="onStatusFilter($event)">
+            <option value="">{{ ts.isRtl() ? 'جميع الحالات' : 'All Statuses' }}</option>
+            <option value="Pending">{{ ts.isRtl() ? 'قيد الانتظار (Pending)' : 'Pending' }}</option>
+            <option value="Approved">{{ ts.isRtl() ? 'تمت الموافقة (Approved)' : 'Approved' }}</option>
+            <option value="Rejected">{{ ts.isRtl() ? 'مرفوض (Rejected)' : 'Rejected' }}</option>
+          </select>
+        </div>
 
-          <div class="col-md-4 text-md-end text-muted small">
-            <span>{{ ts.isRtl() ? 'إجمالي الطلبات:' : 'Total Requests:' }} <strong class="text-primary">{{ filteredItems().length }}</strong></span>
-          </div>
+        <div class="filter-item text-md-end text-muted small align-self-center pb-2">
+          <span>{{ ts.isRtl() ? 'إجمالي الطلبات:' : 'Total Requests:' }} <strong class="text-primary financial-num">{{ filteredItems().length }}</strong></span>
         </div>
       </div>
 
@@ -194,31 +194,31 @@ import { ToastService } from '../../core/services/toast.service';
 
       <!-- VIEW 2: Modern Table -->
       @if (viewMode() === 'table') {
-        <div class="card modern-table-card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="hr-table-card mb-4">
           <div class="table-responsive">
-            <table class="table modern-table align-middle mb-0">
+            <table class="hr-table">
               <thead>
                 <tr>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'الموظف' : 'Employee' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'النوع' : 'Type' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'تاريخ البدء' : 'Start Date' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'تاريخ الانتهاء' : 'End Date' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'الأيام' : 'Days' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'الحالة' : 'Status' }}</th>
-                  <th class="py-3 px-4 text-end">{{ ts.isRtl() ? 'الإجراءات' : 'Actions' }}</th>
+                  <th>{{ ts.isRtl() ? 'الموظف' : 'Employee' }}</th>
+                  <th>{{ ts.isRtl() ? 'النوع' : 'Type' }}</th>
+                  <th>{{ ts.isRtl() ? 'تاريخ البدء' : 'Start Date' }}</th>
+                  <th>{{ ts.isRtl() ? 'تاريخ الانتهاء' : 'End Date' }}</th>
+                  <th>{{ ts.isRtl() ? 'الأيام' : 'Days' }}</th>
+                  <th>{{ ts.isRtl() ? 'الحالة' : 'Status' }}</th>
+                  <th class="text-end">{{ ts.isRtl() ? 'الإجراءات' : 'Actions' }}</th>
                 </tr>
               </thead>
               <tbody>
                 @if (loading()) {
                   @for (i of [1,2,3]; track i) {
                     <tr>
-                      <td class="px-4 py-3"><div class="skeleton-text w-75"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-50"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-50"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-50"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-25"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-50"></div></td>
-                      <td class="px-4 py-3 text-end"><div class="skeleton-text w-50 d-inline-block"></div></td>
+                      <td><div class="skeleton-text w-75"></div></td>
+                      <td><div class="skeleton-text w-50"></div></td>
+                      <td><div class="skeleton-text w-50"></div></td>
+                      <td><div class="skeleton-text w-50"></div></td>
+                      <td><div class="skeleton-text w-25"></div></td>
+                      <td><div class="skeleton-text w-50"></div></td>
+                      <td class="text-end"><div class="skeleton-text w-50 d-inline-block"></div></td>
                     </tr>
                   }
                 }
@@ -226,30 +226,32 @@ import { ToastService } from '../../core/services/toast.service';
                 @if (!loading() && filteredItems().length > 0) {
                   @for (item of filteredItems(); track item.id) {
                     <tr class="modern-row" (click)="viewLeaveDetails(item)">
-                      <td class="px-4 py-3 fw-bold text-card-title hover-underline">
+                      <td class="fw-bold text-card-title hover-underline">
                         {{ item.employeeName || 'موظف' }}
                       </td>
-                      <td class="px-4 py-3">
-                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                      <td>
+                        <span class="hr-badge badge-neutral">
                           {{ item.leaveType }}
                         </span>
                       </td>
-                      <td class="px-4 py-3 text-muted">{{ item.startDate | date:'mediumDate' }}</td>
-                      <td class="px-4 py-3 text-muted">{{ item.endDate | date:'mediumDate' }}</td>
-                      <td class="px-4 py-3 fw-bold">{{ item.totalDays || 1 }}</td>
-                      <td class="px-4 py-3">
-                        <span class="badge px-3 py-2 rounded-pill" [ngClass]="getStatusBadgeClass(item.status)">
+                      <td class="text-muted">{{ item.startDate | date:'mediumDate' }}</td>
+                      <td class="text-muted">{{ item.endDate | date:'mediumDate' }}</td>
+                      <td><span class="financial-num fw-bold">{{ item.totalDays || 1 }}</span></td>
+                      <td>
+                        <span class="hr-badge" [ngClass]="getStatusBadgeClass(item.status)">
                           {{ getStatusArabic(item.status) }}
                         </span>
                       </td>
-                      <td class="px-4 py-3 text-end" (click)="$event.stopPropagation()">
+                      <td class="text-end" (click)="$event.stopPropagation()">
                         @if (item.status === 'Pending' && authService.isHR()) {
-                          <button class="btn btn-sm btn-success rounded-pill px-3 me-1" (click)="approve(item.id)">
-                            <i class="fas fa-check me-1"></i> {{ ts.isRtl() ? 'قبول' : 'Approve' }}
-                          </button>
-                          <button class="btn btn-sm btn-outline-danger rounded-pill px-3" (click)="reject(item.id)">
-                            <i class="fas fa-times me-1"></i> {{ ts.isRtl() ? 'رفض' : 'Reject' }}
-                          </button>
+                          <div class="btn-group btn-group-sm">
+                            <button class="btn btn-sm btn-success" (click)="approve(item.id)">
+                              <i class="fas fa-check me-1"></i> {{ ts.isRtl() ? 'قبول' : 'Approve' }}
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" (click)="reject(item.id)">
+                              <i class="fas fa-times me-1"></i> {{ ts.isRtl() ? 'رفض' : 'Reject' }}
+                            </button>
+                          </div>
                         } @else {
                           <span class="text-muted small">-</span>
                         }
@@ -531,9 +533,9 @@ export class LeaveListComponent implements OnInit {
 
   getStatusBadgeClass(status: string): string {
     switch (status) {
-      case 'Approved': return 'badge-approved';
-      case 'Rejected': return 'badge-rejected';
-      default: return 'badge-pending';
+      case 'Approved': return 'badge-success';
+      case 'Rejected': return 'badge-danger';
+      default: return 'badge-warning';
     }
   }
 
@@ -580,10 +582,16 @@ export class LeaveListComponent implements OnInit {
 
   onSubmit() {
     if (this.form.invalid) return;
+    const empId = this.authService.getEmployeeId();
+    if (!empId) {
+      this.toast.show(this.ts.isRtl() ? 'تعذر تحديد هوية الموظف' : 'Employee ID not found', 'error');
+      return;
+    }
     this.submitting.set(true);
 
     const payload = {
-      ...this.form.value
+      ...this.form.value,
+      employeeId: empId
     };
 
     this.leaveSvc.submit(payload).subscribe({

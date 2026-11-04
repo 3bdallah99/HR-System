@@ -59,24 +59,32 @@ export class PayrollService {
     return this.http.put<ApiResponse<string>>(`${this.baseUrl}/${id}`, dto);
   }
 
-  
   runPayroll(month: number, year: number) {
     return this.http.post<any>(`${this.baseUrl}/run`, { month, year });
   }
+
   getPayslips(month: number, year: number) {
-    return this.http.get<any>(`${this.baseUrl}/payslips`);
+    return this.getByMonth(month, year);
   }
+
+  getAllSalaryStructures() {
+    return this.http.get<ApiResponse<SalaryStructure[]>>(`${this.baseUrl}/salary-structures`);
+  }
+
   getSalaryStructures() {
-    return this.http.get<any>(`${this.baseUrl}/salary-structure`);
+    return this.getAllSalaryStructures();
   }
+
   createSalaryStructure(form: any) {
-    return this.http.post<any>(`${this.baseUrl}/salary-structure`, form);
+    return this.http.post<ApiResponse<string>>(`${this.baseUrl}/salary-structure`, form);
   }
-  updateSalaryStructure(id: number, form: any) {
-    return this.http.put<any>(`${this.baseUrl}/salary-structure/${id}`, form);
+
+  updateSalaryStructure(employeeId: number, form: any) {
+    return this.http.post<ApiResponse<string>>(`${this.baseUrl}/salary-structure/${employeeId}`, form);
   }
-  deleteSalaryStructure(id: number) {
-    return this.http.delete<any>(`${this.baseUrl}/salary-structure/${id}`);
+
+  deleteSalaryStructure(employeeId: number) {
+    return this.http.delete<ApiResponse<string>>(`${this.baseUrl}/salary-structure/${employeeId}`);
   }
 
   delete(id: number) {

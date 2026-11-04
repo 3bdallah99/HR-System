@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastContainerComponent } from './shared/ui/toast-container.component';
 
@@ -11,4 +11,15 @@ import { ToastContainerComponent } from './shared/ui/toast-container.component';
     <app-toast-container />
   `
 })
-export class AppComponent {}
+export class AppComponent implements OnInit {
+  ngOnInit() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('wheel', () => {
+        const active = document.activeElement as HTMLInputElement | null;
+        if (active && active.tagName === 'INPUT' && active.type === 'number') {
+          active.blur();
+        }
+      }, { passive: true });
+    }
+  }
+}

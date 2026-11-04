@@ -1,13 +1,16 @@
 using Appllication.Features.Payroll.Commands.DeletePayroll;
+using Appllication.Features.Payroll.Commands.DeleteSalaryStructure;
 using Appllication.Features.Payroll.Commands.RunPayroll;
 using Appllication.Features.Payroll.Commands.SetSalaryStructure;
 using Appllication.Features.Payroll.Commands.UpdatePayroll;
+using Appllication.Features.Payroll.Queries.GetAllSalaryStructures;
 using Appllication.Features.Payroll.Queries.GetPayrollByEmployee;
 using Appllication.Features.Payroll.Queries.GetPayrollByMonth;
 using Appllication.Features.Payroll.Queries.GetSalaryStructure;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PL.API.Extensions;
 
 namespace PL.API.Controllers
 {
@@ -24,6 +27,16 @@ namespace PL.API.Controllers
         }
 
         // ─── Salary Structure ────────────────────────────────────────────────
+
+        // GET /api/payroll/salary-structures
+        [HttpGet("salary-structures")]
+        [HttpGet("salary-structure")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> GetAllSalaryStructures(CancellationToken ct)
+        {
+            var result = await _sender.Send(new GetAllSalaryStructuresQuery(), ct);
+            return Ok(result);
+        }
 
         // GET /api/payroll/salary-structure/{employeeId}
         [HttpGet("salary-structure/{employeeId:int}")]
@@ -55,6 +68,41 @@ namespace PL.API.Controllers
             return Ok(result);
         }
 
+        // POST /api/payroll/salary-structure
+        [HttpPost("salary-structure")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> SetSalaryStructureFromBody(
+            [FromBody] SetSalaryStructureDto dto, CancellationToken ct)
+        {
+            if (!dto.EmployeeId.HasValue || dto.EmployeeId.Value <= 0)
+            {
+                return BadRequest(Appllication.Common.ApiResponse.Fail("EmployeeId is required."));
+            }
+
+            var command = new SetSalaryStructureCommand(
+                dto.EmployeeId.Value,
+                dto.BasicSalary,
+                dto.HousingAllowance,
+                dto.TransportationAllowance,
+                dto.MealAllowance,
+                dto.OtherAllowances,
+                dto.OvertimePay,
+                dto.SocialInsurance,
+                dto.TaxAmount,
+                dto.OtherDeductions);
+            var result = await _sender.Send(command, ct);
+            return Ok(result);
+        }
+
+        // DELETE /api/payroll/salary-structure/{employeeId}
+        [HttpDelete("salary-structure/{employeeId:int}")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> DeleteSalaryStructure(int employeeId, CancellationToken ct)
+        {
+            var result = await _sender.Send(new DeleteSalaryStructureCommand(employeeId), ct);
+            return Ok(result);
+        }
+
         // ─── Payroll Run & Management ────────────────────────────────────────
 
         // GET /api/payroll/employee/{employeeId}?year=2026
@@ -66,6 +114,9 @@ namespace PL.API.Controllers
             [FromQuery] int pageSize = 12,
             CancellationToken ct = default)
         {
+            if (!User.TryGetAuthorizedEmployeeId(employeeId, out _))
+                return Forbid();
+
             var result = await _sender.Send(
                 new GetPayrollByEmployeeQuery(employeeId, year, page, pageSize), ct);
             return Ok(result);

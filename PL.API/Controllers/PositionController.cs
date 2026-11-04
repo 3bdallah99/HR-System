@@ -22,6 +22,7 @@ public class PositionController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? title = null, [FromQuery] int? departmentId = null)
     {
         var query = new GetAllPositionsQuery(page, pageSize, title, departmentId);
@@ -30,6 +31,7 @@ public class PositionController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> GetById(int id)
     {
         var query = new GetPositionByIdQuery(id);

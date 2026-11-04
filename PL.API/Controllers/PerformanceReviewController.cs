@@ -7,6 +7,7 @@ using Appllication.Features.PerformanceReview.Queries.GetReviewsByEmployee;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using PL.API.Extensions;
 
 namespace PL.API.Controllers
 {
@@ -25,12 +26,16 @@ namespace PL.API.Controllers
         [HttpGet("employee/{employeeId}")]
         public async Task<IActionResult> GetReviewsByEmployee(int employeeId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
+            if (!User.TryGetAuthorizedEmployeeId(employeeId, out _))
+                return Forbid();
+
             var query = new GetReviewsByEmployeeQuery(employeeId, page, pageSize);
             var result = await _sender.Send(query);
             return Ok(result);
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetAllReviews([FromQuery] int? departmentId = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             var query = new GetAllReviewsQuery(departmentId, page, pageSize);
@@ -50,6 +55,9 @@ namespace PL.API.Controllers
         [HttpPost("{id}/acknowledge")]
         public async Task<IActionResult> AcknowledgeReview(int id, [FromQuery] int employeeId)
         {
+            if (!User.TryGetAuthorizedEmployeeId(employeeId, out _))
+                return Forbid();
+
             var command = new AcknowledgeReviewCommand(id, employeeId);
             var result = await _sender.Send(command);
             return Ok(result);

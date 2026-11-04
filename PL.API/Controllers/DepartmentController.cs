@@ -22,6 +22,7 @@ namespace PL.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
@@ -34,6 +35,7 @@ namespace PL.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetById(int id, CancellationToken ct)
         {
             var result = await _sender.Send(new GetDepartmentByIdQuery(id), ct);

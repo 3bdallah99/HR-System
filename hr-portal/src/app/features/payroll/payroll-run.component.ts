@@ -10,129 +10,57 @@ import { PayrollService } from '../../core/services/payroll.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="payroll-run-container" [dir]="isRtl() ? 'rtl' : 'ltr'">
-      <div class="header">
-        <div class="icon-wrapper">
-          <i class="fas fa-play-circle"></i>
+    <div class="payroll-run-page" [dir]="isRtl() ? 'rtl' : 'ltr'">
+      <div class="hr-page-header">
+        <div class="header-content">
+          <h2 class="header-title">
+            <i class="fas fa-play-circle"></i>
+            <span>{{ t().payroll?.runTitle || (isRtl() ? 'إجراء مسير الرواتب' : 'Run Payroll') }}</span>
+          </h2>
+          <p class="header-subtitle">
+            {{ isRtl() ? 'معالجة واحتساب مسير الرواتب الشهري لجميع الموظفين' : 'Process and calculate monthly payroll for all employees' }}
+          </p>
         </div>
-        <h1>{{ t().payroll?.runTitle || 'Run Payroll' }}</h1>
       </div>
 
-      <div class="card premium-card">
-        <div class="card-body">
-          <div class="row align-items-end g-3">
-            <div class="col-12 col-md-4 col-lg-5">
-              <label class="form-label">{{ t().payroll?.month || 'Month' }}</label>
-              <select class="form-select custom-select" [(ngModel)]="month">
-                <option *ngFor="let m of months" [value]="m">{{ m }}</option>
-              </select>
-            </div>
-            <div class="col-12 col-md-4 col-lg-4">
-              <label class="form-label">{{ t().payroll?.year || 'Year' }}</label>
-              <input type="number" class="form-control custom-input" [(ngModel)]="year">
-            </div>
-            <div class="col-12 col-md-4 col-lg-3">
-              <button class="btn btn-primary w-100 premium-btn d-flex align-items-center justify-content-center text-nowrap gap-2" [disabled]="isRunning()" (click)="runPayroll()">
-                <ng-container *ngIf="!isRunning()">
-                  <i class="fas fa-cogs"></i>
-                  <span>{{ t().payroll?.runBtn || 'Run' }}</span>
-                </ng-container>
-                <ng-container *ngIf="isRunning()">
-                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  <span>{{ t().payroll?.running || 'Running...' }}</span>
-                </ng-container>
-              </button>
-            </div>
+      <div class="card border-0 shadow-sm p-4" style="max-width: 800px; margin: 0 auto; background: var(--bg-surface);">
+        <div class="row align-items-end g-3">
+          <div class="col-12 col-md-5">
+            <label class="form-label fw-semibold text-secondary small">{{ t().payroll?.month || (isRtl() ? 'الشهر' : 'Month') }}</label>
+            <select class="form-select" [ngModel]="month()" (ngModelChange)="month.set(+$event)" style="height: 42px;">
+              <option *ngFor="let m of months" [value]="m">{{ m }}</option>
+            </select>
           </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold text-secondary small">{{ t().payroll?.year || (isRtl() ? 'السنة' : 'Year') }}</label>
+            <input type="number" class="form-control" [ngModel]="year()" (ngModelChange)="year.set(+$event)" (wheel)="$any($event.target).blur()" style="height: 42px;">
+          </div>
+          <div class="col-12 col-md-3">
+            <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center text-nowrap gap-2"
+                    [disabled]="isRunning()" (click)="runPayroll()" style="height: 42px;">
+              <ng-container *ngIf="!isRunning()">
+                <i class="fas fa-cogs"></i>
+                <span>{{ t().payroll?.runBtn || (isRtl() ? 'تشغيل' : 'Run') }}</span>
+              </ng-container>
+              <ng-container *ngIf="isRunning()">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span>{{ t().payroll?.running || (isRtl() ? 'جاري التشغيل...' : 'Running...') }}</span>
+              </ng-container>
+            </button>
+          </div>
+        </div>
+        <!-- Dynamic Payroll Cycle Range Notice -->
+        <div class="d-flex align-items-center gap-2 mt-4 p-3 rounded" style="background: var(--primary-subtle); border: 1px solid var(--primary-light);">
+          <i class="fas fa-calendar-alt text-primary"></i>
+          <span class="small fw-semibold text-primary">{{ cycleRange() }}</span>
         </div>
       </div>
     </div>
   `,
   styles: [`
-    .payroll-run-container {
-      padding: 2rem;
-      max-width: 800px;
-      margin: 0 auto;
-      font-family: var(--font-primary, 'Inter', sans-serif);
-    }
-    .payroll-run-container[dir="rtl"] {
-      font-family: var(--font-arabic, 'Cairo', sans-serif);
-    }
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .icon-wrapper {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 1.5rem;
-      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-    }
-    h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text-primary, #1e293b);
-      margin: 0;
-    }
-    .premium-card {
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .premium-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-    }
-    .card-body {
-      padding: 2rem;
-    }
-    .form-label {
-      font-weight: 600;
-      color: var(--text-secondary, #475569);
-      margin-bottom: 0.5rem;
-    }
-    .custom-input, .custom-select {
-      border-radius: 8px;
-      border: 1px solid #cbd5e1;
-      padding: 0.75rem 1rem;
-      transition: all 0.2s ease;
-      background: white;
-    }
-    .custom-input:focus, .custom-select:focus {
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-      outline: none;
-    }
-    .premium-btn {
-      border-radius: 8px;
-      padding: 0.6rem 1rem;
-      background: linear-gradient(135deg, #4f46e5, #6366f1);
-      border: none;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      min-height: 46px;
-      color: white;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      white-space: nowrap;
-    }
-    .premium-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, #4338ca, #4f46e5);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    .payroll-run-page {
+      padding: 0.5rem 0;
+      font-family: inherit;
     }
   `]
 })
@@ -148,6 +76,25 @@ export class PayrollRunComponent {
   month = signal<number>(new Date().getMonth() + 1);
   year = signal<number>(new Date().getFullYear());
   isRunning = signal<boolean>(false);
+
+  cycleRange = computed(() => {
+    const m = this.month();
+    const y = this.year();
+    if (!m || !y) return '';
+    let prevM = m - 1;
+    let prevY = y;
+    if (prevM === 0) {
+      prevM = 12;
+      prevY = y - 1;
+    }
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const startStr = `26/${pad(prevM)}/${prevY}`;
+    const endStr = `25/${pad(m)}/${y}`;
+    if (this.isRtl()) {
+      return `الدورة المالية: ${startStr} إلى ${endStr}`;
+    }
+    return `Payroll Cycle: ${startStr} to ${endStr}`;
+  });
 
   runPayroll() {
     this.isRunning.set(true);

@@ -20,7 +20,7 @@ export class TranslationService {
       document.documentElement.lang = lang;
       document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
       document.body.style.fontFamily = lang === 'ar' 
-        ? "'Cairo', 'Segoe UI', system-ui, sans-serif" 
+        ? "'IBM Plex Sans Arabic', 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
         : "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
     });
   }

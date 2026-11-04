@@ -20,5 +20,6 @@ namespace Appllication.Features.Employee.Queries.GetEmployeeById
         int DepartmentId,
         string DepartmentName,
         int? ManagerId,
-        string? ManagerName);
+        string? ManagerName,
+        string? BadgeNumber = null);
 }

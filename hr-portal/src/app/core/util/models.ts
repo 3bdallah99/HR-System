@@ -32,6 +32,7 @@ export interface Employee {
   departmentName: string;
   managerId?: number;
   managerName?: string;
+  badgeNumber?: string;
 }
 
 export interface CreateEmployeeDto {
@@ -88,12 +89,35 @@ export interface Position {
 }
 
 // ─── Attendance ──────────────────────────────────────────────────────
+export enum AttendanceStatus {
+  Present = 0,
+  Absent = 1,
+  Late = 2,
+  HalfDay = 3,
+  OnLeave = 4
+}
+
+export interface AttendanceSummary {
+  present: number;
+  late: number;
+  absent: number;
+  onLeave: number;
+}
+
+export interface AttendancePaginatedResult<T> extends PaginatedResult<T> {
+  summary?: AttendanceSummary;
+}
+
 export interface AttendanceRecord {
   id: number;
+  employeeId?: number;
+  employeeName?: string;
+  badgeNumber?: string;
   date: string;
-  status: string;
+  status: string | AttendanceStatus;
   clockIn?: string;
   clockOut?: string;
+  lateMinutes?: number;
   note?: string;
 }
 
@@ -104,11 +128,64 @@ export interface DepartmentAttendance {
   employees: EmployeeAttendance[];
 }
 
+export interface MatrixDay {
+  date: string;
+  dateString: string;
+  dayNumber: number;
+  dayName: string;
+  isWeekend: boolean;
+}
+
+export interface DayAttendanceStatus {
+  recordId?: number;
+  date: string;
+  status: string; // Present, Late, Absent, OnLeave, Weekend, Future, None
+  clockIn?: string;
+  clockOut?: string;
+  lateMinutes: number;
+  note?: string;
+}
+
+export interface EmployeeMatrixRow {
+  employeeId: number;
+  employeeName: string;
+  badgeNumber?: string;
+  departmentId: number;
+  departmentName: string;
+  days: { [key: string]: DayAttendanceStatus };
+  totalPresent: number;
+  totalLate: number;
+  totalLateMinutes: number;
+  totalAbsent: number;
+  totalLeaves: number;
+  totalWeekends: number;
+}
+
+export interface MatrixOverallSummary {
+  totalEmployees: number;
+  totalPresentDays: number;
+  totalLateOccurrences: number;
+  totalLateMinutes: number;
+  totalAbsentDays: number;
+  totalLeaveDays: number;
+}
+
+export interface MonthlyAttendanceMatrix {
+  year: number;
+  month: number;
+  isPayrollCycle: boolean;
+  startDate: string;
+  endDate: string;
+  days: MatrixDay[];
+  employees: EmployeeMatrixRow[];
+  summary: MatrixOverallSummary;
+}
+
 export interface EmployeeAttendance {
   employeeId: number;
   employeeName: string;
   attendanceRecordId?: number;
-  status?: string;
+  status?: string | AttendanceStatus;
   clockIn?: string;
   clockOut?: string;
   note?: string;
@@ -138,6 +215,22 @@ export interface DeviceLog {
   isProcessed: boolean;
   errorMessage?: string;
   receivedAt: string;
+}
+
+export interface UploadAttendanceSheetResult {
+  totalRows: number;
+  processedCount: number;
+  createdCount: number;
+  updatedCount: number;
+  failedCount: number;
+  errors: UploadRowError[];
+  message: string;
+}
+
+export interface UploadRowError {
+  rowIndex: number;
+  identifier?: string;
+  error: string;
 }
 
 export interface CreateAttendanceDto {

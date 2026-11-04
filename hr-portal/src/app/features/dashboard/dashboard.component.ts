@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { EmployeeService } from '../../core/services/employee.service';
@@ -18,43 +18,53 @@ import {
 } from '../../core/util/models';
 import { ToastService } from '../../core/services/toast.service';
 import { TranslationService } from '../../core/services/translation.service';
+import { CurrencyService } from '../../core/services/currency.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, CurrencyPipe, DatePipe],
+  imports: [CommonModule, RouterLink, DatePipe],
   template: `
     <div class="dashboard-page" [dir]="ts.isRtl() ? 'rtl' : 'ltr'">
       <!-- Page Header -->
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 animate-fade-in-up">
-        <div>
-          <div class="d-flex align-items-center gap-2 mb-1">
-            <h2 class="fw-bold mb-0 text-navy">
-              {{ ts.t().dashboard?.welcomeBack || 'Welcome back' }}, {{ userName() }}
+      <div class="hr-page-header mb-4">
+        <div class="header-content">
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <h2 class="header-title mb-0">
+              <span>{{ ts.t().dashboard?.welcomeBack || (ts.isRtl() ? 'مرحباً بعودتك' : 'Welcome back') }}،</span>
+              <bdi class="fw-bold">{{ userName() }}</bdi>
             </h2>
-            <span class="badge" [ngClass]="isHR() ? 'bg-primary' : 'bg-success'">
+            <span class="hr-badge" [ngClass]="isHR() ? 'badge-info' : 'badge-success'">
               {{ userRole() }}
             </span>
           </div>
-          <p class="text-muted small mb-0">
-            <i class="fas fa-calendar-day" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i> {{ today | date:'fullDate' }} &middot; {{ ts.t().dashboard?.realTimeTelemetry || 'Real-time workforce telemetry' }}
+          <p class="header-subtitle mb-0 d-flex align-items-center gap-2 flex-wrap">
+            <span class="d-inline-flex align-items-center gap-1">
+              <i class="fas fa-calendar-day text-primary"></i>
+              <bdi>{{ formattedDate() }}</bdi>
+            </span>
+            <span class="text-muted opacity-50">&middot;</span>
+            <span>{{ ts.t().dashboard?.realTimeTelemetry || (ts.isRtl() ? 'بيانات القوى العاملة المباشرة' : 'Real-time workforce telemetry') }}</span>
           </p>
         </div>
 
         <!-- Quick Actions (HR) -->
-        <div *ngIf="isHR()" class="d-flex gap-2">
-          <a routerLink="/payroll/run" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2 transition hover-elevate">
-            <i class="fas fa-play"></i> {{ ts.t().common?.runPayroll || ts.t()?.dashboard?.runPayroll || 'إجراء الرواتب' }}
+        <div *ngIf="isHR()" class="header-actions">
+          <a routerLink="/payroll/run" class="btn btn-outline-primary d-inline-flex align-items-center gap-2">
+            <i class="fas fa-play"></i>
+            <span>{{ ts.t().common?.runPayroll || ts.t()?.dashboard?.runPayroll || (ts.isRtl() ? 'إجراء الرواتب' : 'Run Payroll') }}</span>
           </a>
-          <a routerLink="/employees" class="btn btn-primary btn-sm d-flex align-items-center gap-2 transition hover-elevate shadow-sm">
-            <i class="fas fa-user-plus"></i> {{ ts.t().common?.manageEmployees || ts.t()?.dashboard?.manageEmployees || 'إدارة الموظفين' }}
+          <a routerLink="/employees" class="btn btn-primary d-inline-flex align-items-center gap-2">
+            <i class="fas fa-user-plus"></i>
+            <span>{{ ts.t().common?.manageEmployees || ts.t()?.dashboard?.manageEmployees || (ts.isRtl() ? 'إدارة الموظفين' : 'Manage Employees') }}</span>
           </a>
         </div>
 
         <!-- Quick Actions (Employee) -->
-        <div *ngIf="!isHR()" class="d-flex gap-2">
-          <a routerLink="/leaves" class="btn btn-primary btn-sm d-flex align-items-center gap-2 transition hover-elevate shadow-sm">
-            <i class="fas fa-paper-plane"></i> {{ ts.t().common?.requestLeave || 'Request Leave' }}
+        <div *ngIf="!isHR()" class="header-actions">
+          <a routerLink="/leaves" class="btn btn-primary d-inline-flex align-items-center gap-2">
+            <i class="fas fa-paper-plane"></i>
+            <span>{{ ts.t().common?.requestLeave || (ts.isRtl() ? 'طلب إجازة' : 'Request Leave') }}</span>
           </a>
         </div>
       </div>
@@ -64,117 +74,116 @@ import { TranslationService } from '../../core/services/translation.service';
       <!-- ======================================================== -->
       <ng-container *ngIf="isHR()">
         <!-- KPI Stat Cards Row -->
-        <div class="row g-3 mb-4 animate-fade-in-up" style="animation-delay: 0.1s;">
-          <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stat-card glass-card">
-              <div>
-                <div class="stat-label">{{ ts.t().dashboard?.totalEmployees || 'Total Employees' }}</div>
-                <div class="stat-value counter-animate">{{ totalEmployees() }}</div>
-                <div class="small text-success mt-1">
-                  <i class="fas fa-check-circle" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i> {{ ts.t().dashboard?.activeWorkforce || 'Active Workforce' }}
-                </div>
-              </div>
-              <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary">
-                <i class="fas fa-users"></i>
-              </div>
+        <div class="hr-stats-grid mb-4">
+          <!-- Total Employees -->
+          <div class="hr-stat-card">
+            <div class="stat-info">
+              <span class="stat-label">{{ ts.t().dashboard?.totalEmployees || (ts.isRtl() ? 'إجمالي الموظفين' : 'Total Employees') }}</span>
+              <span class="stat-value text-primary financial-num">{{ totalEmployees() }}</span>
+              <span class="stat-hint text-success">
+                <i class="fas fa-check-circle" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i>
+                <span>{{ ts.t().dashboard?.activeWorkforce || (ts.isRtl() ? 'القوى العاملة النشطة' : 'Active Workforce') }}</span>
+              </span>
+            </div>
+            <div class="stat-icon icon-primary">
+              <i class="fas fa-users"></i>
             </div>
           </div>
 
-          <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stat-card glass-card">
-              <div>
-                <div class="stat-label">{{ ts.t().dashboard?.departments || 'Departments' }}</div>
-                <div class="stat-value counter-animate">{{ totalDepartments() }}</div>
-                <div class="small text-muted mt-1">
-                  <i class="fas fa-layer-group" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i> {{ ts.t().dashboard?.activeUnits || 'Active Units' }}
-                </div>
-              </div>
-              <div class="stat-icon-wrapper bg-info bg-opacity-10 text-info">
-                <i class="fas fa-sitemap"></i>
-              </div>
+          <!-- Departments -->
+          <div class="hr-stat-card">
+            <div class="stat-info">
+              <span class="stat-label">{{ ts.t().dashboard?.departments || (ts.isRtl() ? 'الأقسام' : 'Departments') }}</span>
+              <span class="stat-value text-info financial-num">{{ totalDepartments() }}</span>
+              <span class="stat-hint text-muted">
+                <i class="fas fa-layer-group" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i>
+                <span>{{ ts.t().dashboard?.activeUnits || (ts.isRtl() ? 'الوحدات النشطة' : 'Active Units') }}</span>
+              </span>
+            </div>
+            <div class="stat-icon icon-info">
+              <i class="fas fa-sitemap"></i>
             </div>
           </div>
 
-          <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stat-card glass-card">
-              <div>
-                <div class="stat-label">{{ ts.t().dashboard?.pendingLeaves || 'Pending Leaves' }}</div>
-                <div class="stat-value text-warning counter-animate">{{ pendingLeavesCount() }}</div>
-                <div class="small text-muted mt-1">
-                  <i class="fas fa-clock" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i> {{ ts.t()?.dashboard?.awaitingReview || 'بانتظار المراجعة' }}
-                </div>
-              </div>
-              <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning">
-                <i class="fas fa-calendar-alt"></i>
-              </div>
+          <!-- Pending Leaves -->
+          <div class="hr-stat-card">
+            <div class="stat-info">
+              <span class="stat-label">{{ ts.t().dashboard?.pendingLeaves || (ts.isRtl() ? 'الإجازات المعلقة' : 'Pending Leaves') }}</span>
+              <span class="stat-value text-warning financial-num">{{ pendingLeavesCount() }}</span>
+              <span class="stat-hint text-muted">
+                <i class="fas fa-clock" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i>
+                <span>{{ ts.t()?.dashboard?.awaitingReview || (ts.isRtl() ? 'بانتظار المراجعة' : 'Awaiting Review') }}</span>
+              </span>
+            </div>
+            <div class="stat-icon icon-warning">
+              <i class="fas fa-calendar-alt"></i>
             </div>
           </div>
 
-          <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stat-card glass-card">
-              <div>
-                <div class="stat-label">{{ ts.t().dashboard?.monthlyPayroll || 'Monthly Payroll' }}</div>
-                <div class="stat-value text-success fs-3 counter-animate">
-                  {{ (monthlyDisbursed() > 0 ? (monthlyDisbursed() | currency:'USD':'symbol':'1.0-0') : (ts.t().dashboard?.ready || 'Ready')) }}
-                </div>
-                <div class="small text-muted mt-1">
-                  <i class="fas fa-wallet" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i> {{ ts.t().dashboard?.currentPeriod || 'Current Period' }}
-                </div>
-              </div>
-              <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success">
-                <i class="fas fa-money-check-dollar"></i>
-              </div>
+          <!-- Monthly Payroll -->
+          <div class="hr-stat-card">
+            <div class="stat-info">
+              <span class="stat-label">{{ ts.t().dashboard?.monthlyPayroll || (ts.isRtl() ? 'رواتب الشهر' : 'Monthly Payroll') }}</span>
+              <span class="stat-value text-success financial-num">
+                {{ (monthlyDisbursed() > 0 ? (monthlyDisbursed() | number:'1.0-0') + ' ' + currency.currencySymbol() : (ts.t().dashboard?.ready || (ts.isRtl() ? 'جاهز' : 'Ready'))) }}
+              </span>
+              <span class="stat-hint text-muted">
+                <i class="fas fa-wallet" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i>
+                <span>{{ ts.t().dashboard?.currentPeriod || (ts.isRtl() ? 'الفترة الحالية' : 'Current Period') }}</span>
+              </span>
+            </div>
+            <div class="stat-icon icon-success">
+              <i class="fas fa-money-check-dollar"></i>
             </div>
           </div>
         </div>
 
-        <div class="row g-4 animate-fade-in-up" style="animation-delay: 0.2s;">
+        <div class="row g-4 mb-4">
           <!-- Pending Approvals Queue -->
           <div class="col-12 col-lg-8">
-            <div class="card h-100 shadow-sm border-0 glass-card">
-              <div class="card-header bg-transparent border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+            <div class="hr-table-card h-100">
+              <div class="table-card-header d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
                   <i class="fas fa-clipboard-check text-primary"></i>
-                  <span class="fw-bold text-dark">{{ ts.t().dashboard?.pendingLeaveApprovals || 'Pending Leave Approvals' }}</span>
-                  <span class="badge bg-warning text-dark rounded-pill shadow-sm">{{ pendingLeaves().length }}</span>
+                  <span class="fw-bold">{{ ts.t().dashboard?.pendingLeaveApprovals || (ts.isRtl() ? 'موافقات الإجازات المعلقة' : 'Pending Leave Approvals') }}</span>
+                  <span class="hr-badge badge-warning">{{ pendingLeaves().length }}</span>
                 </div>
-                <a routerLink="/leaves" class="small text-decoration-none fw-semibold">
-                  {{ ts.t().common?.viewAll || ts.t()?.common?.viewAll || 'عرض الكل' }} 
-                  <i class="fas" [ngClass]="ts.isRtl() ? 'fa-chevron-left me-1' : 'fa-chevron-right ms-1'"></i>
+                <a routerLink="/leaves" class="small text-decoration-none fw-semibold d-inline-flex align-items-center gap-1">
+                  <span>{{ ts.t().common?.viewAll || (ts.isRtl() ? 'عرض الكل' : 'View All') }}</span>
+                  <i class="fas" [ngClass]="ts.isRtl() ? 'fa-chevron-left' : 'fa-chevron-right'"></i>
                 </a>
               </div>
-              <div class="card-body p-0">
-                <div *ngIf="isLoadingHR()" class="p-4">
-                  <div class="skeleton skeleton-title w-25 mb-3"></div>
-                  <div class="skeleton skeleton-text w-75 mb-2"></div>
-                  <div class="skeleton skeleton-text w-50"></div>
+              <div class="table-card-body p-0">
+                <div *ngIf="isLoadingHR()" class="p-4 text-center">
+                  <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                  <span class="text-muted small">{{ ts.isRtl() ? 'جاري التحميل...' : 'Loading...' }}</span>
                 </div>
 
                 <div *ngIf="!isLoadingHR() && pendingLeaves().length === 0" class="empty-state py-5 text-center">
                   <i class="fas fa-check-double text-success fs-1 mb-3"></i>
-                  <h6 class="fw-bold">{{ ts.t().dashboard?.allCaughtUp || 'All Caught Up!' }}</h6>
-                  <p class="small text-muted mb-0">{{ ts.t().dashboard?.noPendingLeaves || 'No pending leave requests requiring HR review right now.' }}</p>
+                  <h6 class="fw-bold">{{ ts.t().dashboard?.allCaughtUp || (ts.isRtl() ? 'تم إنجاز كل شيء' : 'All Caught Up!') }}</h6>
+                  <p class="small text-muted mb-0">{{ ts.t().dashboard?.noPendingLeaves || ts.t().dashboard?.noPendingLeaveRequests || (ts.isRtl() ? 'لا توجد طلبات إجازة معلقة بحاجة لمراجعة الموارد البشرية حالياً.' : 'No pending leave requests.') }}</p>
                 </div>
 
                 <div *ngIf="!isLoadingHR() && pendingLeaves().length > 0" class="table-responsive">
-                  <table class="table table-hover align-middle mb-0 custom-table">
-                    <thead class="bg-light">
+                  <table class="hr-table">
+                    <thead>
                       <tr>
-                        <th>{{ ts.t().common?.employee || 'Employee' }}</th>
-                        <th>{{ ts.t().common?.type || 'Type' }}</th>
-                        <th>{{ ts.t().common?.duration || 'Duration' }}</th>
-                        <th>{{ ts.t().common?.days || 'Days' }}</th>
-                        <th>{{ ts.t().common?.action || 'Action' }}</th>
+                        <th>{{ ts.t().common?.employee || (ts.isRtl() ? 'الموظف' : 'Employee') }}</th>
+                        <th>{{ ts.t().common?.type || (ts.isRtl() ? 'النوع' : 'Type') }}</th>
+                        <th>{{ ts.t().common?.duration || (ts.isRtl() ? 'الفترة' : 'Duration') }}</th>
+                        <th>{{ ts.t().common?.days || (ts.isRtl() ? 'الأيام' : 'Days') }}</th>
+                        <th class="text-end">{{ ts.t().common?.action || (ts.isRtl() ? 'الإجراء' : 'Action') }}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr *ngFor="let leave of pendingLeaves().slice(0, 5)" class="transition-row">
+                      <tr *ngFor="let leave of pendingLeaves().slice(0, 5)">
                         <td>
-                          <div class="fw-bold text-dark">{{ leave.employeeName }}</div>
+                          <div class="fw-bold">{{ leave.employeeName }}</div>
                           <span class="text-muted small">{{ leave.departmentName }}</span>
                         </td>
                         <td>
-                          <span class="badge bg-light text-dark border shadow-sm">{{ leave.leaveType }}</span>
+                          <span class="hr-badge badge-neutral">{{ leave.leaveType }}</span>
                         </td>
                         <td class="small text-nowrap">
                           {{ leave.startDate | date:'mediumDate' }} 
@@ -182,17 +191,17 @@ import { TranslationService } from '../../core/services/translation.service';
                           {{ leave.endDate | date:'mediumDate' }}
                         </td>
                         <td>
-                          <span class="badge bg-primary-subtle text-primary fw-bold">{{ leave.totalDays }}d</span>
+                          <span class="hr-badge badge-info financial-num">{{ leave.totalDays }} {{ ts.isRtl() ? 'يوم' : 'd' }}</span>
                         </td>
-                        <td>
-                          <div class="btn-group btn-group-sm shadow-sm">
+                        <td class="text-end">
+                          <div class="btn-group btn-group-sm">
                             <button
-                              class="btn btn-success btn-sm transition"
-                              [title]="ts.t().common?.approve || 'Approve immediately'"
+                              class="btn btn-success btn-sm"
+                              [title]="ts.t().common?.approve || (ts.isRtl() ? 'قبول فوري' : 'Approve immediately')"
                               (click)="quickApprove(leave.id)">
                               <i class="fas fa-check"></i>
                             </button>
-                            <a routerLink="/leaves" class="btn btn-outline-secondary btn-sm transition" [title]="ts.t().common?.review || 'Review details'">
+                            <a routerLink="/leaves" class="btn btn-outline-secondary btn-sm" [title]="ts.t().common?.review || (ts.isRtl() ? 'مراجعة التفاصيل' : 'Review details')">
                               <i class="fas fa-eye"></i>
                             </a>
                           </div>
@@ -207,53 +216,53 @@ import { TranslationService } from '../../core/services/translation.service';
 
           <!-- Quick Navigation & Highlights -->
           <div class="col-12 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 glass-card">
-              <div class="card-header bg-transparent border-bottom-0 py-3">
-                <span class="fw-bold text-dark">
-                  <i class="fas fa-bolt text-warning" [ngClass]="ts.isRtl() ? 'ms-2' : 'me-2'"></i>{{ ts.t().dashboard?.hrOpsShortcuts || 'HR Ops Shortcuts' }}
+            <div class="hr-table-card h-100 d-flex flex-column">
+              <div class="table-card-header py-3">
+                <span class="fw-bold d-flex align-items-center gap-2">
+                  <i class="fas fa-bolt text-warning"></i>
+                  <span>{{ ts.t().dashboard?.hrOpsShortcuts || (ts.isRtl() ? 'اختصارات عمليات الموارد البشرية' : 'HR Ops Shortcuts') }}</span>
                 </span>
               </div>
-              <div class="card-body d-flex flex-column gap-3">
-                <a routerLink="/payroll/structures" class="text-decoration-none">
-                  <div class="p-3 border rounded-4 bg-white shadow-sm hover-elevate transition d-flex align-items-center gap-3">
-                    <div class="stat-icon-wrapper bg-indigo bg-opacity-10 text-primary flex-shrink-0">
-                      <i class="fas fa-sliders"></i>
-                    </div>
-                    <div class="text-start">
-                      <div class="fw-bold text-dark">{{ ts.t().dashboard?.salaryStructureDesigner || 'Salary Structure Designer' }}</div>
-                      <div class="text-muted small">{{ ts.t().dashboard?.configureAllowances || 'Configure allowances, overtime & tax rules' }}</div>
-                    </div>
+              <div class="card-body p-3 d-flex flex-column gap-3 flex-grow-1">
+                <a routerLink="/payroll/salary-structures" class="dashboard-shortcut-card">
+                  <div class="shortcut-icon-box text-primary bg-primary bg-opacity-10">
+                    <i class="fas fa-sliders"></i>
                   </div>
+                  <div class="shortcut-content">
+                    <div class="shortcut-title">{{ ts.t().dashboard?.salaryStructureDesigner || (ts.isRtl() ? 'مصمم هيكل الرواتب' : 'Salary Structure Designer') }}</div>
+                    <div class="shortcut-desc">{{ ts.t().dashboard?.configureAllowances || (ts.isRtl() ? 'تهيئة البدلات، الإضافي، وقواعد الضرائب' : 'Configure allowances & tax rules') }}</div>
+                  </div>
+                  <i class="fas shortcut-arrow" [ngClass]="ts.isRtl() ? 'fa-chevron-left' : 'fa-chevron-right'"></i>
                 </a>
 
-                <a routerLink="/attendance" class="text-decoration-none">
-                  <div class="p-3 border rounded-4 bg-white shadow-sm hover-elevate transition d-flex align-items-center gap-3">
-                    <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning flex-shrink-0">
-                      <i class="fas fa-user-clock"></i>
-                    </div>
-                    <div class="text-start">
-                      <div class="fw-bold text-dark">{{ ts.t().dashboard?.departmentAttendance || 'Department Attendance' }}</div>
-                      <div class="text-muted small">{{ ts.t().dashboard?.dailyPunches || 'Daily punches & manual time audit' }}</div>
-                    </div>
+                <a routerLink="/attendance" class="dashboard-shortcut-card">
+                  <div class="shortcut-icon-box text-warning bg-warning bg-opacity-10">
+                    <i class="fas fa-user-clock"></i>
                   </div>
+                  <div class="shortcut-content">
+                    <div class="shortcut-title">{{ ts.t().dashboard?.departmentAttendance || (ts.isRtl() ? 'حضور القسم' : 'Department Attendance') }}</div>
+                    <div class="shortcut-desc">{{ ts.t().dashboard?.dailyPunches || (ts.isRtl() ? 'تسجيل البصمة اليومية والتدقيق اليدوي' : 'Daily punches & time audit') }}</div>
+                  </div>
+                  <i class="fas shortcut-arrow" [ngClass]="ts.isRtl() ? 'fa-chevron-left' : 'fa-chevron-right'"></i>
                 </a>
 
-                <a routerLink="/attendance/device-logs" class="text-decoration-none">
-                  <div class="p-3 border rounded-4 bg-white shadow-sm hover-elevate transition d-flex align-items-center gap-3">
-                    <div class="stat-icon-wrapper bg-info bg-opacity-10 text-info flex-shrink-0">
-                      <i class="fas fa-fingerprint"></i>
-                    </div>
-                    <div class="text-start">
-                      <div class="fw-bold text-dark">{{ ts.t().dashboard?.biometricLogs || ts.t().dashboard?.biometricHardwareLogs || 'Biometric Hardware Logs' }}</div>
-                      <div class="text-muted small">{{ ts.t().dashboard?.inspectZKTeco || 'Inspect ZKTeco raw punch events' }}</div>
-                    </div>
+                <a routerLink="/payroll/payslips" class="dashboard-shortcut-card">
+                  <div class="shortcut-icon-box text-success bg-success bg-opacity-10">
+                    <i class="fas fa-file-invoice-dollar"></i>
                   </div>
+                  <div class="shortcut-content">
+                    <div class="shortcut-title">{{ ts.t().dashboard?.monthlyPayslips || (ts.isRtl() ? 'قسائم الرواتب الشهرية' : 'Monthly Payslips') }}</div>
+                    <div class="shortcut-desc">{{ ts.t().dashboard?.inspectPayslips || (ts.isRtl() ? 'استعراض وطباعة ومراجعة قسائم رواتب الموظفين' : 'Review & print monthly salary slips') }}</div>
+                  </div>
+                  <i class="fas shortcut-arrow" [ngClass]="ts.isRtl() ? 'fa-chevron-left' : 'fa-chevron-right'"></i>
                 </a>
 
-                <div class="p-3 rounded-4 bg-slate-100 text-muted small mt-auto border glass-card text-start">
-                  <i class="fas fa-info-circle text-primary" [ngClass]="ts.isRtl() ? 'ms-2' : 'me-2'"></i>
-                  <strong class="text-dark">{{ ts.t().dashboard?.tardinessRuleActive || '60-Min Tardiness Rule Active:' }}</strong>
-                  <span class="d-inline-block">{{ ts.t().dashboard?.freeGraceAllowance || 'Free grace allowance resets at the 1st of every month.' }}</span>
+                <div class="dashboard-callout mt-auto">
+                  <i class="fas fa-info-circle"></i>
+                  <div>
+                    <strong>{{ ts.t().dashboard?.tardinessRuleActive || (ts.isRtl() ? 'قاعدة سماحية التأخير 60 دقيقة:' : '60-Min Tardiness Rule Active:') }}</strong>
+                    <span> {{ ts.t().dashboard?.freeGraceAllowance || (ts.isRtl() ? 'تُجدد السماحية تلقائياً أول كل شهر ميلادي.' : 'Free grace allowance resets at the 1st of every month.') }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -266,58 +275,58 @@ import { TranslationService } from '../../core/services/translation.service';
       <!-- ======================================================== -->
       <ng-container *ngIf="!isHR()">
         <!-- Top Telemetry Row: Tardiness + Balance Spotlight -->
-        <div class="row g-4 mb-4 animate-fade-in-up" style="animation-delay: 0.1s;">
+        <div class="row g-4 mb-4">
           <!-- Tardiness Gauge Widget -->
           <div class="col-12 col-lg-6">
-            <div class="card h-100 border-0 shadow-sm glass-card">
-              <div class="card-header bg-transparent border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+            <div class="hr-table-card h-100">
+              <div class="table-card-header d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
                   <i class="fas fa-stopwatch text-warning"></i>
-                  <span class="fw-bold text-dark">{{ ts.t().dashboard?.myMonthlyTardiness || 'My Monthly Tardiness Allowance' }}</span>
+                  <span class="fw-bold">{{ ts.t().dashboard?.myMonthlyTardiness || (ts.isRtl() ? 'سماحية التأخير الشهرية' : 'My Monthly Tardiness Allowance') }}</span>
                 </div>
-                <span class="badge bg-light text-dark border shadow-sm">{{ ts.t().common?.month || 'Month' }} {{ currentMonth }}</span>
+                <span class="hr-badge badge-neutral">{{ ts.t().common?.month || (ts.isRtl() ? 'شهر' : 'Month') }} {{ currentMonth }}</span>
               </div>
-              <div class="card-body d-flex flex-column justify-content-between">
+              <div class="card-body p-4 d-flex flex-column justify-content-between">
                 <div *ngIf="isLoadingEmployee()">
-                  <div class="skeleton skeleton-title w-25 mb-3"></div>
-                  <div class="skeleton skeleton-text w-100 mb-2"></div>
+                  <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                  <span class="text-muted small">{{ ts.isRtl() ? 'جاري التحميل...' : 'Loading...' }}</span>
                 </div>
 
                 <div *ngIf="!isLoadingEmployee() && tardinessSummary() as tData">
                   <div class="d-flex justify-content-between align-items-end mb-2">
                     <div>
-                      <span class="fs-1 fw-bold counter-animate" [ngClass]="tData.totalLateMinutes > 60 ? 'text-danger' : 'text-success'">
+                      <span class="fs-1 fw-bold financial-num" [ngClass]="tData.totalLateMinutes > 60 ? 'text-danger' : 'text-success'">
                         {{ tData.totalLateMinutes }}
                       </span>
-                      <span class="text-muted fs-6"> / 60 {{ ts.t().dashboard?.minsUsed || 'mins used' }}</span>
+                      <span class="text-muted fs-6"> / 60 {{ ts.t().dashboard?.minsUsed || (ts.isRtl() ? 'دقيقة مستهلكة' : 'mins used') }}</span>
                     </div>
 
-                    <span *ngIf="tData.deductibleMinutes > 0" class="badge bg-danger fs-6 py-2 px-3 shadow-sm rounded-pill transition-bounce">
-                      <i class="fas fa-triangle-exclamation" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i> {{ tData.deductibleMinutes }} {{ ts.t().dashboard?.minDeductible || 'min deductible' }}
+                    <span *ngIf="tData.deductibleMinutes > 0" class="hr-badge badge-danger">
+                      <i class="fas fa-triangle-exclamation" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i> {{ tData.deductibleMinutes }} {{ ts.t().dashboard?.minDeductible || (ts.isRtl() ? 'دقيقة خاضعة للخصم' : 'min deductible') }}
                     </span>
-                    <span *ngIf="tData.deductibleMinutes === 0" class="badge bg-success-subtle text-success border border-success fs-6 py-2 px-3 shadow-sm rounded-pill transition-bounce">
-                      <i class="fas fa-shield-check" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i> {{ ts.t().dashboard?.withinFreeAllowance || 'Within Free Allowance' }}
+                    <span *ngIf="tData.deductibleMinutes === 0" class="hr-badge badge-success">
+                      <i class="fas fa-shield-halved" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i> {{ ts.t().dashboard?.withinFreeAllowance || (ts.isRtl() ? 'ضمن حد السماح المجاني' : 'Within Free Allowance') }}
                     </span>
                   </div>
 
                   <!-- Visual Progress Bar -->
-                  <div class="progress mb-3 rounded-pill shadow-sm bg-light" style="height: 12px;">
+                  <div class="progress mb-3 rounded-pill bg-light" style="height: 10px;">
                     <div
-                      class="progress-bar progress-bar-striped progress-bar-animated rounded-pill"
+                      class="progress-bar rounded-pill"
                       [ngClass]="tardinessProgressClass(tData)"
                       role="progressbar"
                       [style.width.%]="tardinessPercentage(tData)"></div>
                   </div>
 
                   <div class="d-flex justify-content-between text-muted small">
-                    <span><i class="fas fa-history" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i> {{ tData.lateOccurrences }} {{ ts.t().dashboard?.tardyInstances || 'tardy instances' }}</span>
-                    <span>{{ ts.t().dashboard?.allowanceFree || 'Allowance: 60 mins/month free' }}</span>
+                    <span><i class="fas fa-history" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i> {{ tData.lateOccurrences }} {{ ts.t().dashboard?.tardyInstances || (ts.isRtl() ? 'مرات تأخير' : 'tardy instances') }}</span>
+                    <span>{{ ts.t().dashboard?.allowanceFree || (ts.isRtl() ? 'السماحية: 60 دقيقة شهرياً مجاناً' : 'Allowance: 60 mins/month free') }}</span>
                   </div>
                 </div>
 
-                <div class="alert alert-light border mt-3 mb-0 small text-muted glass-card">
+                <div class="alert alert-light border mt-3 mb-0 small text-muted">
                   <i class="fas fa-lightbulb text-warning" [ngClass]="ts.isRtl() ? 'ms-1' : 'me-1'"></i>
-                  {{ ts.t().dashboard?.tardinessNote || 'Daily official start time is 09:00 AM. Tardiness beyond 60 minutes is deducted proportionally in monthly payroll.' }}
+                  {{ ts.t().dashboard?.tardinessNote || (ts.isRtl() ? 'ميعاد الحضور الرسمي هو 09:00 صباحاً. يتم احتساب أي تأخير إضافي بعد استنفاذ الـ 60 دقيقة في مسير الرواتب.' : 'Official start time is 09:00 AM.') }}
                 </div>
               </div>
             </div>
@@ -325,33 +334,33 @@ import { TranslationService } from '../../core/services/translation.service';
 
           <!-- Quick Balance Overview -->
           <div class="col-12 col-lg-6">
-            <div class="card h-100 border-0 shadow-sm glass-card">
-              <div class="card-header bg-transparent border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+            <div class="hr-table-card h-100">
+              <div class="table-card-header d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
                   <i class="fas fa-umbrella-beach text-primary"></i>
-                  <span class="fw-bold text-dark">{{ ts.t().dashboard?.myLeaveBalances || 'My Leave Balances' }}</span>
+                  <span class="fw-bold">{{ ts.t().dashboard?.myLeaveBalances || (ts.isRtl() ? 'أرصدة إجازاتي' : 'My Leave Balances') }}</span>
                 </div>
-                <a routerLink="/leaves/balances" class="small text-decoration-none fw-semibold">
-                  {{ ts.t().dashboard?.allBalances || 'All Balances' }} 
-                  <i class="fas" [ngClass]="ts.isRtl() ? 'fa-arrow-left ms-1' : 'fa-arrow-right ms-1'"></i>
+                <a routerLink="/leaves/balances" class="small text-decoration-none fw-semibold d-inline-flex align-items-center gap-1">
+                  <span>{{ ts.t().dashboard?.allBalances || (ts.isRtl() ? 'كافة الأرصدة' : 'All Balances') }}</span>
+                  <i class="fas" [ngClass]="ts.isRtl() ? 'fa-chevron-left' : 'fa-chevron-right'"></i>
                 </a>
               </div>
-              <div class="card-body">
-                <div *ngIf="isLoadingEmployee()">
-                  <div class="skeleton skeleton-title w-50 mb-3"></div>
-                  <div class="skeleton skeleton-text w-75 mb-2"></div>
+              <div class="card-body p-3">
+                <div *ngIf="isLoadingEmployee()" class="text-center py-4">
+                  <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                  <span class="text-muted small">{{ ts.isRtl() ? 'جاري التحميل...' : 'Loading...' }}</span>
                 </div>
 
                 <div *ngIf="!isLoadingEmployee() && leaveBalances().length === 0" class="empty-state py-3 text-center">
-                  <p class="small text-muted mb-0">{{ ts.t().dashboard?.noActiveLeaveQuota || 'No active leave quota configured for this year.' }}</p>
+                  <p class="small text-muted mb-0">{{ ts.t().dashboard?.noActiveLeaveQuota || (ts.isRtl() ? 'لا توجد حصص إجازات مفعلة لهذا العام.' : 'No active leave quota.') }}</p>
                 </div>
 
                 <div *ngIf="!isLoadingEmployee() && leaveBalances().length > 0" class="d-flex flex-column gap-3">
-                  <div *ngFor="let b of leaveBalances()" class="p-3 border rounded-4 bg-white shadow-sm hover-elevate transition">
+                  <div *ngFor="let b of leaveBalances()" class="p-3 border rounded-3 bg-white shadow-sm">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                      <span class="fw-bold text-dark small">{{ b.leaveType }} {{ ts.t().common?.leave || 'Leave' }}</span>
-                      <span class="small font-monospace bg-light px-2 py-1 rounded">
-                        <strong class="text-primary">{{ b.remainingDays }}</strong> / {{ b.totalDays }} {{ ts.t().dashboard?.daysLeft || 'days left' }}
+                      <span class="fw-bold text-dark small">{{ b.leaveType }} {{ ts.t().common?.leave || (ts.isRtl() ? 'إجازة' : 'Leave') }}</span>
+                      <span class="small bg-light px-2 py-1 rounded financial-num">
+                        <strong class="text-primary">{{ b.remainingDays }}</strong> / {{ b.totalDays }} {{ ts.t().dashboard?.daysLeft || (ts.isRtl() ? 'يوم متبقي' : 'days left') }}
                       </span>
                     </div>
                     <div class="progress rounded-pill bg-light" style="height: 8px;">
@@ -368,47 +377,47 @@ import { TranslationService } from '../../core/services/translation.service';
         </div>
 
         <!-- Recent Leave Requests Table -->
-        <div class="card border-0 shadow-sm mb-4 glass-card animate-fade-in-up" style="animation-delay: 0.2s;">
-          <div class="card-header bg-transparent border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+        <div class="hr-table-card mb-4">
+          <div class="table-card-header d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-2">
               <i class="fas fa-list-check text-primary"></i>
-              <span class="fw-bold text-dark">{{ ts.t().dashboard?.myRecentLeaves || 'My Recent Leave Requests' }}</span>
+              <span class="fw-bold">{{ ts.t().dashboard?.myRecentLeaves || (ts.isRtl() ? 'طلبات الإجازة الأخيرة' : 'My Recent Leave Requests') }}</span>
             </div>
-            <a routerLink="/leaves" class="btn btn-sm btn-outline-primary transition hover-elevate shadow-sm">
-              {{ ts.t().dashboard?.submitNewRequest || 'Submit New Request' }}
+            <a routerLink="/leaves" class="btn btn-sm btn-outline-primary">
+              {{ ts.t().dashboard?.submitNewRequest || (ts.isRtl() ? 'تقديم طلب جديد' : 'Submit New Request') }}
             </a>
           </div>
-          <div class="card-body p-0">
+          <div class="table-card-body p-0">
             <div *ngIf="myRecentLeaves().length === 0" class="empty-state py-5 text-center">
               <i class="fas fa-folder-open text-muted fs-1 mb-3"></i>
-              <p class="small text-muted mb-0">{{ ts.t().dashboard?.noLeaveRequestsYet || 'You have not submitted any leave requests yet.' }}</p>
+              <p class="small text-muted mb-0">{{ ts.t().dashboard?.noLeaveRequestsYet || (ts.isRtl() ? 'لم تقم بتقديم أي طلبات إجازة حتى الآن.' : 'No leave requests submitted yet.') }}</p>
             </div>
 
             <div *ngIf="myRecentLeaves().length > 0" class="table-responsive">
-              <table class="table table-hover align-middle mb-0 custom-table">
-                <thead class="bg-light">
+              <table class="hr-table">
+                <thead>
                   <tr>
-                    <th>{{ ts.t().common?.type || 'Type' }}</th>
-                    <th>{{ ts.t().common?.startDate || 'Start Date' }}</th>
-                    <th>{{ ts.t().common?.endDate || 'End Date' }}</th>
-                    <th>{{ ts.t().common?.days || 'Days' }}</th>
-                    <th>{{ ts.t().common?.status || 'Status' }}</th>
-                    <th>{{ ts.t().common?.rejectionReason || 'Rejection Reason' }}</th>
+                    <th>{{ ts.t().common?.type || (ts.isRtl() ? 'النوع' : 'Type') }}</th>
+                    <th>{{ ts.t().common?.startDate || (ts.isRtl() ? 'تاريخ البدء' : 'Start Date') }}</th>
+                    <th>{{ ts.t().common?.endDate || (ts.isRtl() ? 'تاريخ الانتهاء' : 'End Date') }}</th>
+                    <th>{{ ts.t().common?.days || (ts.isRtl() ? 'الأيام' : 'Days') }}</th>
+                    <th>{{ ts.t().common?.status || (ts.isRtl() ? 'الحالة' : 'Status') }}</th>
+                    <th>{{ ts.t().common?.rejectionReason || (ts.isRtl() ? 'ملاحظة الرفض' : 'Rejection Reason') }}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let req of myRecentLeaves()" class="transition-row">
-                    <td><span class="badge bg-white text-dark border shadow-sm">{{ req.leaveType }}</span></td>
+                  <tr *ngFor="let req of myRecentLeaves()">
+                    <td><span class="hr-badge badge-neutral">{{ req.leaveType }}</span></td>
                     <td class="small">{{ req.startDate | date:'mediumDate' }}</td>
                     <td class="small">{{ req.endDate | date:'mediumDate' }}</td>
-                    <td><strong class="text-primary">{{ req.totalDays }}</strong></td>
+                    <td><strong class="financial-num text-primary">{{ req.totalDays }}</strong></td>
                     <td>
                       <span
-                        class="badge rounded-pill shadow-sm border py-1 px-2"
+                        class="hr-badge"
                         [ngClass]="{
-                          'bg-warning-subtle text-warning border-warning': req.status === 'Pending',
-                          'bg-success-subtle text-success border-success': req.status === 'Approved',
-                          'bg-danger-subtle text-danger border-danger': req.status === 'Rejected'
+                          'badge-warning': req.status === 'Pending',
+                          'badge-success': req.status === 'Approved',
+                          'badge-danger': req.status === 'Rejected'
                         }">
                         <i
                           class="fas"
@@ -436,132 +445,100 @@ import { TranslationService } from '../../core/services/translation.service';
   `,
   styles: [`
     .dashboard-page {
-      font-family: var(--font-family, 'Inter', 'Cairo', sans-serif);
-    }
-    
-    .glass-card {
-      background: var(--bg-surface-solid, #ffffff);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-family: inherit;
     }
 
-    .stat-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.5rem;
-      border-radius: 1rem;
-      background: var(--bg-surface-solid, #ffffff);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-      transition: all 0.3s ease;
-      height: 100%;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-
-    .stat-label {
-    font-size: 0.875rem;
-    color: var(--text-secondary, #64748b);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
-  }
-
-    .stat-value {
-      font-size: 1.875rem;
-      font-weight: 700;
-      color: #0f172a;
-      line-height: 1.2;
-    }
-
-    .stat-icon-wrapper {
-      width: 56px;
-      height: 56px;
-      border-radius: 1rem;
+    .dashboard-shortcut-card {
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-    }
+      gap: 0.95rem;
+      padding: 0.85rem 1.05rem;
+      background: var(--bg-surface-elevated, var(--bg-surface));
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-    .hover-elevate {
-      transition: all 0.2s ease-in-out;
-    }
-    .hover-elevate:hover {
-      background-color: #ffffff !important;
-      box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1) !important;
-      transform: translateY(-2px);
-    }
+      &:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
 
-    .transition {
-      transition: all 0.3s ease;
-    }
-
-    .transition-row {
-      transition: background-color 0.2s ease;
-    }
-    .transition-row:hover {
-      background-color: rgba(248, 250, 252, 0.8) !important;
-    }
-
-    .transition-bounce {
-      animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .custom-table th {
-      font-weight: 600;
-      color: #475569;
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 0.05em;
-      padding: 1rem;
-      border-bottom-width: 2px;
-    }
-    
-    .custom-table td {
-      padding: 1rem;
-      vertical-align: middle;
-    }
-
-    .animate-fade-in-up {
-      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-
-    .counter-animate {
-      animation: countUp 1s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
+        .shortcut-arrow {
+          color: var(--primary);
+          transform: translateX(var(--arrow-dir, -3px));
+        }
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+
+      .shortcut-icon-box {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+      }
+
+      .shortcut-content {
+        flex: 1;
+        min-width: 0;
+
+        .shortcut-title {
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin-bottom: 0.2rem;
+        }
+
+        .shortcut-desc {
+          font-size: 0.76rem;
+          color: var(--text-secondary);
+          line-height: 1.35;
+        }
+      }
+
+      .shortcut-arrow {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        transition: transform 0.2s ease, color 0.2s ease;
       }
     }
 
-    @keyframes bounceIn {
-      0% { transform: scale(0.3); opacity: 0; }
-      50% { transform: scale(1.05); opacity: 1; }
-      70% { transform: scale(0.9); }
-      100% { transform: scale(1); }
+    [dir="ltr"] .dashboard-shortcut-card:hover .shortcut-arrow {
+      --arrow-dir: 3px;
     }
 
-    @keyframes countUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .dashboard-callout {
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-md);
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px dashed rgba(99, 102, 241, 0.28);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.79rem;
+      line-height: 1.45;
+      color: var(--text-secondary);
+
+      i {
+        font-size: 1rem;
+        color: var(--primary);
+        margin-top: 0.15rem;
+        flex-shrink: 0;
+      }
+
+      strong {
+        color: var(--text-primary);
+      }
     }
   `]
 })
 export class DashboardComponent implements OnInit {
   ts = inject(TranslationService);
+  currency = inject(CurrencyService);
   private authService = inject(AuthService);
   private employeeService = inject(EmployeeService);
   private departmentService = inject(DepartmentService);
@@ -574,15 +551,33 @@ export class DashboardComponent implements OnInit {
   currentMonth = new Date().getMonth() + 1;
   currentYear = new Date().getFullYear();
 
+  formattedDate = computed(() => {
+    const locale = this.ts.isRtl() ? 'ar-EG-u-nu-latn' : 'en-US';
+    try {
+      return new Intl.DateTimeFormat(locale, {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }).format(this.today);
+    } catch {
+      return this.today.toDateString();
+    }
+  });
+
   isHR = this.authService.isHR;
   userRole = computed(() => {
     const role = this.authService.currentUser()?.role || 'Employee';
-    // attempt translation if structured roles exist, fallback to original
-    return this.ts.t().dashboard?.roles?.[role] || role;
+    if (role === 'HR') {
+      return this.ts.t()?.common?.hrAdmin || (this.ts.isRtl() ? 'مسؤول الموارد البشرية' : 'HR Administrator');
+    }
+    return this.ts.t()?.common?.employee || (this.ts.isRtl() ? 'موظف' : 'Employee');
   });
   userName = computed(() => {
     const email = this.authService.currentUser()?.email;
-    return email ? email.split('@')[0] : 'User';
+    if (!email) return this.ts.t()?.common?.user || (this.ts.isRtl() ? 'مستخدم' : 'User');
+    const raw = email.split('@')[0];
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
   });
 
   // HR State
@@ -651,7 +646,15 @@ export class DashboardComponent implements OnInit {
   }
 
   loadEmployeeDashboard() {
-    const empId = this.authService.getEmployeeId() || 1;
+    const empId = this.authService.getEmployeeId();
+    if (!empId) {
+      this.isLoadingEmployee.set(false);
+      this.tardinessSummary.set(null);
+      this.leaveBalances.set([]);
+      this.myRecentLeaves.set([]);
+      return;
+    }
+
     this.isLoadingEmployee.set(true);
 
     // 1. Tardiness for current month

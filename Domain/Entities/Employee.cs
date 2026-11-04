@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-	public class Employee
-	{
+    public class Employee
+    {
         public int Id { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
@@ -15,6 +15,9 @@ namespace Domain.Entities
         public string Address { get; set; }
         public DateTime HireDate { get; set; }
         public bool IsActive { get; set; } = true;
+
+        // Biometric / Attendance badge or punch code
+        public string? BadgeNumber { get; set; }
 
         // Identity link — set when HR Admin creates the account
         public string? UserId { get; set; }

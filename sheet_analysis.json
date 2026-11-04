@@ -1,0 +1,135 @@
+{
+  "FileName": "9 sep 2026.xlsb",
+  "FileSizeBytes": 89371,
+  "RawExcelDimensions": {
+    "TotalRowsInExcel": 106,
+    "TotalColumnsInExcel": 135,
+    "HeaderRowsCount": 8,
+    "EmployeeDataRowsCount": 98
+  },
+  "ParsedTimesheet": {
+    "Title": "\u062A\u0627\u064A\u0645 \u0634\u064A\u062A \u0634\u0631\u0643\u0629 \u0639\u0646\u0627\u064A\u0647 \u0627\u0644\u0637\u0628\u064A\u0647 \u0645\u0646 26/08/2026 \u062D\u062A\u064A 25/09/2026",
+    "Department": "T.CLINIC",
+    "StartDate": "2026-08-26",
+    "EndDate": "2026-09-25",
+    "CycleTotalDays": 31,
+    "TotalEmployees": 93
+  },
+  "JobCategories": [
+    {
+      "Job": "Nurse",
+      "Count": 41
+    },
+    {
+      "Job": "Receiption",
+      "Count": 11
+    },
+    {
+      "Job": "Call Center",
+      "Count": 10
+    },
+    {
+      "Job": "Doctor",
+      "Count": 6
+    },
+    {
+      "Job": "Cleaner",
+      "Count": 6
+    },
+    {
+      "Job": "Securty",
+      "Count": 5
+    },
+    {
+      "Job": "receiption",
+      "Count": 4
+    },
+    {
+      "Job": "Staff",
+      "Count": 2
+    },
+    {
+      "Job": "nurse",
+      "Count": 1
+    },
+    {
+      "Job": "Hospitality",
+      "Count": 1
+    },
+    {
+      "Job": "Social Media",
+      "Count": 1
+    },
+    {
+      "Job": "Supervisor",
+      "Count": 1
+    },
+    {
+      "Job": "OM",
+      "Count": 1
+    },
+    {
+      "Job": "Formen",
+      "Count": 1
+    },
+    {
+      "Job": "HR",
+      "Count": 1
+    },
+    {
+      "Job": "quality",
+      "Count": 1
+    }
+  ],
+  "AggregatePunches": {
+    "TotalEvaluatedDays": 2883,
+    "WorkingDaysCount": 908,
+    "AbsentDaysCount": 13,
+    "ApprovedLeaveDaysCount": 149,
+    "OffOrFridayDaysCount": 182,
+    "LateOrCutDaysCount": 2267,
+    "TotalOvertimeHours": 50
+  },
+  "SampleEmployees": [
+    {
+      "Badge": "1000",
+      "Name": "Dr. Eman Fathy",
+      "Job": "Doctor",
+      "DaysCount": 31,
+      "WorkingDays": 22,
+      "AbsentDays": 0
+    },
+    {
+      "Badge": "1002",
+      "Name": "Dr. Huda Nabil Ismael",
+      "Job": "Doctor",
+      "DaysCount": 31,
+      "WorkingDays": 0,
+      "AbsentDays": 0
+    },
+    {
+      "Badge": "1006",
+      "Name": "Dr. Eman El-Gendy",
+      "Job": "Doctor",
+      "DaysCount": 31,
+      "WorkingDays": 26,
+      "AbsentDays": 0
+    },
+    {
+      "Badge": "1007",
+      "Name": "Dr. Yasmeen Al-Shgrwi",
+      "Job": "Doctor",
+      "DaysCount": 31,
+      "WorkingDays": 0,
+      "AbsentDays": 0
+    },
+    {
+      "Badge": "1008",
+      "Name": "Dr. asmaa junedy",
+      "Job": "Doctor",
+      "DaysCount": 31,
+      "WorkingDays": 0,
+      "AbsentDays": 0
+    }
+  ]
+}

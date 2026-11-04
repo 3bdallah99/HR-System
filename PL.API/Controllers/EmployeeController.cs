@@ -6,6 +6,7 @@ using Appllication.Features.Employee.Queries.GetEmployeeById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PL.API.Extensions;
 
 namespace PL.API.Controllers
 {
@@ -22,6 +23,7 @@ namespace PL.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
@@ -38,6 +40,9 @@ namespace PL.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id, CancellationToken ct)
         {
+            if (!User.TryGetAuthorizedEmployeeId(id, out _))
+                return Forbid();
+
             var result = await _sender.Send(new GetEmployeeByIdQuery(id), ct);
             return Ok(result);
         }

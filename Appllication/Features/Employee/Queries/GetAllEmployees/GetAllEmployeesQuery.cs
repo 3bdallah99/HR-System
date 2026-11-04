@@ -22,5 +22,6 @@ namespace Appllication.Features.Employee.Queries.GetAllEmployees
         string PositionTitle,
         decimal BaseSalary,
         string DepartmentName,
-        string? ManagerName);
+        string? ManagerName,
+        string? BadgeNumber = null);
 }

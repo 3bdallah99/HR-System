@@ -6,21 +6,22 @@ import { DepartmentService } from '../../core/services/department.service';
 import { PositionService } from '../../core/services/position.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { ToastService } from '../../core/services/toast.service';
+import { CurrencyService } from '../../core/services/currency.service';
 
 @Component({
   selector: 'app-employee-list',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="page-container animate-fade-in-up" [class.rtl]="ts.isRtl()">
+    <div class="page-container" [class.rtl]="ts.isRtl()">
       <!-- Top Header & Actions -->
-      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div>
-          <h2 class="page-title fw-bold mb-1 text-dark">{{ ts.isRtl() ? 'دليل الموظفين' : 'Employee Directory' }}</h2>
-          <p class="text-muted mb-0">{{ ts.isRtl() ? 'إدارة واستعراض كافة الموظفين وهياكلهم الوظيفية' : 'Manage and view all employee profiles and structures' }}</p>
+      <div class="hr-page-header mb-4">
+        <div class="header-content">
+          <h2 class="page-title mb-0">{{ ts.isRtl() ? 'دليل الموظفين' : 'Employee Directory' }}</h2>
+          <p class="page-subtitle mb-0">{{ ts.isRtl() ? 'إدارة واستعراض كافة الموظفين وهياكلهم الوظيفية' : 'Manage and view all employee profiles and structures' }}</p>
         </div>
 
-        <div class="d-flex align-items-center gap-3">
+        <div class="header-actions">
           <!-- View Mode Switcher -->
           <div class="view-mode-toggle btn-group p-1 rounded-pill bg-surface border">
             <button class="btn btn-sm rounded-pill px-3" [class.active]="viewMode() === 'table'" (click)="viewMode.set('table')">
@@ -32,42 +33,42 @@ import { ToastService } from '../../core/services/toast.service';
           </div>
 
           <!-- Add Button -->
-          <button class="btn btn-primary btn-premium rounded-pill px-4 shadow-sm" (click)="toggleForm()">
-            <i class="fas fa-user-plus" [class.ms-2]="ts.isRtl()" [class.me-2]="!ts.isRtl()"></i>
+          <button class="btn btn-primary d-flex align-items-center gap-2" (click)="toggleForm()">
+            <i class="fas fa-user-plus"></i>
             {{ ts.isRtl() ? 'إضافة موظف جديد' : 'Add Employee' }}
           </button>
         </div>
       </div>
 
       <!-- Filters & Search Toolbar -->
-      <div class="toolbar-card card border-0 shadow-sm p-3 mb-4 rounded-4">
-        <div class="row g-3 align-items-center">
-          <!-- Search Input -->
-          <div class="col-md-5">
-            <div class="input-group glass-input-group">
-              <span class="input-group-text border-0 bg-transparent text-muted ps-3">
-                <i class="fas fa-search"></i>
-              </span>
-              <input type="text" class="form-control border-0 bg-transparent py-2" 
-                     [placeholder]="ts.isRtl() ? 'بحث بالاسم، البريد، أو الهاتف...' : 'Search by name, email, or phone...'"
-                     [value]="searchTerm()" (input)="updateSearch($event)">
-            </div>
+      <div class="hr-filter-bar mb-4" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) auto; align-items: end;">
+        <!-- Search Input -->
+        <div class="filter-item">
+          <label class="filter-label">{{ ts.isRtl() ? 'البحث السريع' : 'Quick Search' }}</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 text-muted">
+              <i class="fas fa-search"></i>
+            </span>
+            <input type="text" class="form-control border-start-0" 
+                   [placeholder]="ts.isRtl() ? 'بحث بالاسم، البريد، أو الهاتف...' : 'Search by name, email, or phone...'"
+                   [value]="searchTerm()" (input)="updateSearch($event)">
           </div>
+        </div>
 
-          <!-- Department Filter -->
-          <div class="col-md-4">
-            <select class="form-select border-0 bg-surface-select py-2 rounded-3" (change)="onFilterDepartment($event)">
-              <option value="">{{ ts.isRtl() ? 'جميع الأقسام' : 'All Departments' }}</option>
-              @for (dept of departments(); track dept.id) {
-                <option [value]="dept.id">{{ dept.name }}</option>
-              }
-            </select>
-          </div>
+        <!-- Department Filter -->
+        <div class="filter-item">
+          <label class="filter-label">{{ ts.isRtl() ? 'القسم' : 'Department' }}</label>
+          <select class="form-select" (change)="onFilterDepartment($event)">
+            <option value="">{{ ts.isRtl() ? 'جميع الأقسام' : 'All Departments' }}</option>
+            @for (dept of departments(); track dept.id) {
+              <option [value]="dept.id">{{ dept.name }}</option>
+            }
+          </select>
+        </div>
 
-          <!-- Total Count Badge -->
-          <div class="col-md-3 text-md-end text-muted small">
-            <span>{{ ts.isRtl() ? 'العدد الكلي:' : 'Total:' }} <strong class="text-primary">{{ totalCount() }}</strong> {{ ts.isRtl() ? 'موظف' : 'employees' }}</span>
-          </div>
+        <!-- Total Count Badge -->
+        <div class="filter-item text-md-end text-muted small align-self-center pb-2">
+          <span>{{ ts.isRtl() ? 'العدد الكلي:' : 'Total:' }} <strong class="text-primary financial-num">{{ totalCount() }}</strong> {{ ts.isRtl() ? 'موظف' : 'employees' }}</span>
         </div>
       </div>
 
@@ -143,7 +144,7 @@ import { ToastService } from '../../core/services/toast.service';
                     <select class="form-select rounded-3" id="positionId" formControlName="positionId">
                       <option [ngValue]="null" disabled selected>{{ ts.isRtl() ? '-- اختر المنصب الوظيفي --' : '-- Select Position --' }}</option>
                       @for (pos of filteredPositions(); track pos.id) {
-                        <option [value]="pos.id">{{ pos.title }} ({{ pos.departmentName || pos.baseSalary + ' EGP' }})</option>
+                        <option [value]="pos.id">{{ pos.title }} ({{ pos.departmentName || (pos.baseSalary | number:'1.2-2') + ' ' + currency.currencySymbol() }})</option>
                       }
                     </select>
                     <label for="positionId">{{ ts.isRtl() ? 'المنصب الوظيفي' : 'Position' }} *</label>
@@ -233,7 +234,7 @@ import { ToastService } from '../../core/services/toast.service';
                     </div>
                     <div class="pill-item">
                       <i class="fas fa-wallet text-warning opacity-75"></i>
-                      <span class="fw-bold">{{ item.baseSalary | currency }}</span>
+                      <span class="fw-bold">{{ item.baseSalary | number:'1.2-2' }} {{ currency.currencySymbol() }}</span>
                     </div>
                   </div>
 
@@ -253,18 +254,18 @@ import { ToastService } from '../../core/services/toast.service';
 
       <!-- VIEW 2: Ultra-Modern Floating Table -->
       @if (viewMode() === 'table') {
-        <div class="card modern-table-card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="hr-table-card mb-4">
           <div class="table-responsive">
-            <table class="table modern-table align-middle mb-0">
+            <table class="hr-table">
               <thead>
                 <tr>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'الموظف' : 'Employee' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'القسم' : 'Department' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'المنصب الوظيفي' : 'Position' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'البريد الإلكتروني' : 'Email' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'رقم الهاتف' : 'Phone' }}</th>
-                  <th class="py-3 px-4">{{ ts.isRtl() ? 'الراتب' : 'Salary' }}</th>
-                  <th class="py-3 px-4 text-end">{{ ts.isRtl() ? 'الإجراءات' : 'Actions' }}</th>
+                  <th>{{ ts.isRtl() ? 'الموظف' : 'Employee' }}</th>
+                  <th>{{ ts.isRtl() ? 'القسم' : 'Department' }}</th>
+                  <th>{{ ts.isRtl() ? 'المنصب الوظيفي' : 'Position' }}</th>
+                  <th>{{ ts.isRtl() ? 'البريد الإلكتروني' : 'Email' }}</th>
+                  <th>{{ ts.isRtl() ? 'رقم الهاتف' : 'Phone' }}</th>
+                  <th>{{ ts.isRtl() ? 'الراتب' : 'Salary' }}</th>
+                  <th class="text-end">{{ ts.isRtl() ? 'الإجراءات' : 'Actions' }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -272,13 +273,13 @@ import { ToastService } from '../../core/services/toast.service';
                 @if (loading()) {
                   @for (i of [1,2,3,4,5]; track i) {
                     <tr>
-                      <td class="px-4 py-3"><div class="skeleton-text w-75"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-50"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-50"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-75"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-50"></div></td>
-                      <td class="px-4 py-3"><div class="skeleton-text w-25"></div></td>
-                      <td class="px-4 py-3 text-end"><div class="skeleton-text w-50 d-inline-block"></div></td>
+                      <td><div class="skeleton-text w-75"></div></td>
+                      <td><div class="skeleton-text w-50"></div></td>
+                      <td><div class="skeleton-text w-50"></div></td>
+                      <td><div class="skeleton-text w-75"></div></td>
+                      <td><div class="skeleton-text w-50"></div></td>
+                      <td><div class="skeleton-text w-25"></div></td>
+                      <td class="text-end"><div class="skeleton-text w-50 d-inline-block"></div></td>
                     </tr>
                   }
                 }
@@ -288,7 +289,7 @@ import { ToastService } from '../../core/services/toast.service';
                   @for (item of data(); track item.id) {
                     <tr class="modern-row" (click)="viewEmployeeDetails(item)">
                       <!-- Name & Avatar -->
-                      <td class="px-4 py-3">
+                      <td>
                         <div class="d-flex align-items-center">
                           <div class="avatar-gradient me-3" [class.ms-3]="ts.isRtl()" [class.me-3]="!ts.isRtl()" [style.background]="getAvatarGradient(item.id)">
                             {{ getInitials(item.name) }}
@@ -301,44 +302,48 @@ import { ToastService } from '../../core/services/toast.service';
                       </td>
 
                       <!-- Department -->
-                      <td class="px-4 py-3">
-                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                      <td>
+                        <span class="hr-badge badge-neutral">
                           <i class="fas fa-building me-1 opacity-75"></i> {{ item.departmentName || '-' }}
                         </span>
                       </td>
 
                       <!-- Position -->
-                      <td class="px-4 py-3">
-                        <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill">
+                      <td>
+                        <span class="hr-badge badge-info">
                           <i class="fas fa-briefcase me-1 opacity-75"></i> {{ item.positionTitle || '-' }}
                         </span>
                       </td>
 
                       <!-- Email -->
-                      <td class="px-4 py-3 text-muted">
+                      <td class="text-muted">
                         <span class="d-flex align-items-center">
                           <i class="fas fa-envelope text-muted me-2 opacity-50"></i> {{ item.email }}
                         </span>
                       </td>
 
                       <!-- Phone -->
-                      <td class="px-4 py-3 text-muted" dir="ltr">
+                      <td class="text-muted financial-num" dir="ltr">
                         {{ item.phone }}
                       </td>
 
                       <!-- Base Salary -->
-                      <td class="px-4 py-3 fw-bold text-success">
-                        {{ item.baseSalary | currency }}
+                      <td>
+                        <span class="financial-num fw-bold text-success">
+                          {{ item.baseSalary | number:'1.2-2' }} {{ currency.currencySymbol() }}
+                        </span>
                       </td>
 
                       <!-- Actions -->
-                      <td class="px-4 py-3 text-end" (click)="$event.stopPropagation()">
-                        <button class="btn btn-sm btn-icon btn-light me-1 rounded-circle shadow-sm" (click)="edit(item)" title="تعديل">
-                          <i class="fas fa-pen text-primary"></i>
-                        </button>
-                        <button class="btn btn-sm btn-icon btn-light rounded-circle shadow-sm" (click)="delete(item.id)" title="حذف">
-                          <i class="fas fa-trash text-danger"></i>
-                        </button>
+                      <td class="text-end" (click)="$event.stopPropagation()">
+                        <div class="btn-group btn-group-sm">
+                          <button class="btn btn-sm btn-outline-primary" (click)="edit(item)" title="تعديل">
+                            <i class="fas fa-pen"></i>
+                          </button>
+                          <button class="btn btn-sm btn-outline-danger" (click)="delete(item.id)" title="حذف">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   }
@@ -424,14 +429,14 @@ import { ToastService } from '../../core/services/toast.service';
               <div class="row g-3 mb-4">
                 <!-- Email -->
                 <div class="col-md-6">
-                  <div class="info-box p-3 rounded-3 bg-surface border">
+                  <div class="info-box p-3 rounded-3 bg-surface border h-100">
                     <div class="d-flex align-items-center gap-3">
-                      <div class="info-icon text-primary bg-primary bg-opacity-10 rounded-circle">
+                      <div class="info-icon text-primary bg-primary bg-opacity-10 rounded-circle flex-shrink-0">
                         <i class="fas fa-envelope"></i>
                       </div>
-                      <div>
+                      <div class="info-content">
                         <small class="text-muted d-block">{{ ts.isRtl() ? 'البريد الإلكتروني' : 'Email Address' }}</small>
-                        <span class="fw-bold">{{ selectedEmployee().email }}</span>
+                        <span class="fw-bold d-block text-break" [title]="selectedEmployee().email">{{ selectedEmployee().email }}</span>
                       </div>
                     </div>
                   </div>
@@ -439,14 +444,14 @@ import { ToastService } from '../../core/services/toast.service';
 
                 <!-- Phone -->
                 <div class="col-md-6">
-                  <div class="info-box p-3 rounded-3 bg-surface border">
+                  <div class="info-box p-3 rounded-3 bg-surface border h-100">
                     <div class="d-flex align-items-center gap-3">
-                      <div class="info-icon text-success bg-success bg-opacity-10 rounded-circle">
+                      <div class="info-icon text-success bg-success bg-opacity-10 rounded-circle flex-shrink-0">
                         <i class="fas fa-phone"></i>
                       </div>
-                      <div>
+                      <div class="info-content">
                         <small class="text-muted d-block">{{ ts.isRtl() ? 'رقم الهاتف' : 'Phone Number' }}</small>
-                        <span class="fw-bold" dir="ltr">{{ selectedEmployee().phone }}</span>
+                        <span class="fw-bold d-block" dir="ltr">{{ selectedEmployee().phone || (ts.isRtl() ? 'غير محدد' : 'Not specified') }}</span>
                       </div>
                     </div>
                   </div>
@@ -454,14 +459,14 @@ import { ToastService } from '../../core/services/toast.service';
 
                 <!-- Address -->
                 <div class="col-md-6">
-                  <div class="info-box p-3 rounded-3 bg-surface border">
+                  <div class="info-box p-3 rounded-3 bg-surface border h-100">
                     <div class="d-flex align-items-center gap-3">
-                      <div class="info-icon text-danger bg-danger bg-opacity-10 rounded-circle">
+                      <div class="info-icon text-danger bg-danger bg-opacity-10 rounded-circle flex-shrink-0">
                         <i class="fas fa-map-marker-alt"></i>
                       </div>
-                      <div>
+                      <div class="info-content">
                         <small class="text-muted d-block">{{ ts.isRtl() ? 'محل الإقامة' : 'Address' }}</small>
-                        <span class="fw-bold">{{ selectedEmployee().address || (ts.isRtl() ? 'غير محدد' : 'Not specified') }}</span>
+                        <span class="fw-bold d-block text-break">{{ selectedEmployee().address || (ts.isRtl() ? 'غير محدد' : 'Not specified') }}</span>
                       </div>
                     </div>
                   </div>
@@ -469,14 +474,14 @@ import { ToastService } from '../../core/services/toast.service';
 
                 <!-- Hire Date -->
                 <div class="col-md-6">
-                  <div class="info-box p-3 rounded-3 bg-surface border">
+                  <div class="info-box p-3 rounded-3 bg-surface border h-100">
                     <div class="d-flex align-items-center gap-3">
-                      <div class="info-icon text-warning bg-warning bg-opacity-10 rounded-circle">
+                      <div class="info-icon text-warning bg-warning bg-opacity-10 rounded-circle flex-shrink-0">
                         <i class="fas fa-calendar-check"></i>
                       </div>
-                      <div>
+                      <div class="info-content">
                         <small class="text-muted d-block">{{ ts.isRtl() ? 'تاريخ التعيين' : 'Hire Date' }}</small>
-                        <span class="fw-bold">{{ selectedEmployee().hireDate | date:'fullDate' }}</span>
+                        <span class="fw-bold d-block">{{ selectedEmployee().hireDate | date:'fullDate' }}</span>
                       </div>
                     </div>
                   </div>
@@ -484,14 +489,14 @@ import { ToastService } from '../../core/services/toast.service';
 
                 <!-- Base Salary -->
                 <div class="col-md-6">
-                  <div class="info-box p-3 rounded-3 bg-surface border">
+                  <div class="info-box p-3 rounded-3 bg-surface border h-100">
                     <div class="d-flex align-items-center gap-3">
-                      <div class="info-icon text-success bg-success bg-opacity-10 rounded-circle">
+                      <div class="info-icon text-success bg-success bg-opacity-10 rounded-circle flex-shrink-0">
                         <i class="fas fa-money-bill-wave"></i>
                       </div>
-                      <div>
+                      <div class="info-content">
                         <small class="text-muted d-block">{{ ts.isRtl() ? 'الراتب الأساسي' : 'Base Salary' }}</small>
-                        <span class="fw-bold text-success fs-5">{{ selectedEmployee().baseSalary | currency }}</span>
+                        <span class="fw-bold text-success fs-5 d-block">{{ selectedEmployee().baseSalary | number:'1.2-2' }} {{ currency.currencySymbol() }}</span>
                       </div>
                     </div>
                   </div>
@@ -499,14 +504,14 @@ import { ToastService } from '../../core/services/toast.service';
 
                 <!-- Department / Position -->
                 <div class="col-md-6">
-                  <div class="info-box p-3 rounded-3 bg-surface border">
+                  <div class="info-box p-3 rounded-3 bg-surface border h-100">
                     <div class="d-flex align-items-center gap-3">
-                      <div class="info-icon text-info bg-info bg-opacity-10 rounded-circle">
+                      <div class="info-icon text-info bg-info bg-opacity-10 rounded-circle flex-shrink-0">
                         <i class="fas fa-id-card"></i>
                       </div>
-                      <div>
+                      <div class="info-content">
                         <small class="text-muted d-block">{{ ts.isRtl() ? 'الرقم التعريفي (ID)' : 'Employee ID' }}</small>
-                        <span class="fw-bold">#EMP-{{ selectedEmployee().id }}</span>
+                        <span class="fw-bold d-block" dir="ltr">#EMP-{{ selectedEmployee().id }}</span>
                       </div>
                     </div>
                   </div>
@@ -747,6 +752,16 @@ import { ToastService } from '../../core/services/toast.service';
       background: #10b981;
     }
 
+    .info-box {
+      transition: all 0.2s ease;
+    }
+    .info-content {
+      min-width: 0;
+      flex: 1 1 0%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
     .info-icon {
       width: 42px;
       height: 42px;
@@ -784,6 +799,7 @@ export class EmployeeListComponent implements OnInit {
   svc = inject(EmployeeService);
   deptSvc = inject(DepartmentService);
   posSvc = inject(PositionService);
+  currency = inject(CurrencyService);
   fb = inject(FormBuilder);
 
   data = signal<any[]>([]);
@@ -881,19 +897,12 @@ export class EmployeeListComponent implements OnInit {
   loadData() {
     this.loading.set(true);
     const deptId = this.selectedDepartmentId() || undefined;
-    this.svc.getAll(this.page(), this.pageSize(), undefined, undefined, deptId).subscribe({
+    const term = this.searchTerm()?.trim() || undefined;
+    this.svc.getAll(this.page(), this.pageSize(), term, undefined, deptId).subscribe({
       next: (res: any) => {
-        let items = (res.data?.items || (Array.isArray(res.data) ? res.data : (res.data?.items || res.items || [])));
-        const term = this.searchTerm().toLowerCase();
-        if (term) {
-          items = items.filter((emp: any) => 
-            emp.name?.toLowerCase().includes(term) ||
-            emp.email?.toLowerCase().includes(term) ||
-            emp.phone?.includes(term)
-          );
-        }
+        const items = res.data?.items || (Array.isArray(res.data) ? res.data : (res.data?.items || res.items || []));
         this.data.set(items);
-        this.totalCount.set((res.data?.totalCount || res.totalCount) || items.length);
+        this.totalCount.set((res.data?.totalCount ?? res.totalCount) ?? items.length);
         this.loading.set(false);
       },
       error: () => {
